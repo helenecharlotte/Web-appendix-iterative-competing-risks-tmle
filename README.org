@@ -21,6 +21,7 @@ library(zoo)
 library(glmnet)
 library(survival)
 library(stringr)
+library(ggplot2) 
 library(ltmle)
 library(nleqslv)
 library(parallel)
@@ -57,7 +58,93 @@ source("./R/predict.catfit.R")
 
 ** Data example
 
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results output :exports code  :session *R* :cache yes  
+data(follic, package="randomForestSRC")
+follic <- data.table(follic) 
 
+#-- convert variables:
+follic[, stage:=as.numeric(clinstg==2)]
+follic[, chemo:=as.numeric(ch=="Y")]
+follic <- follic[, -c("clinstg", "ch"), with=FALSE]
+
+follic[, table(status)] 
+follic[, summary(time)]
+follic[time<=10, table(status)]
+#+END_SRC    
+
+#+RESULTS[(2022-07-13 14:50:29) d004072359b7d08f7b3f05e1b46ada2fc7070c00]:
+: status
+:   0   1   2 
+: 193 272  76
+:      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+:  0.002738  1.919233  5.464750  7.393791 10.850103 31.101985
+: status
+:   0   1   2 
+:  95 251  46
 
 
 *** Simulating data 
+
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results none :exports none  :session *R* :cache yes
+#######################################################################################
+
+#--- try see what super learner would pick
+bhaz.sl <- contmle(follic, estimation=list("outcome"=list(fit="sl",
+                                                          model=Surv(time, status==1)~chemo+stage+hgb+age,
+                                                          lambda.cvs=seq(0.008, 0.02, length=10)),
+                                           "cens"=list(fit="sl",
+                                                       model=Surv(time, status==0)~chemo+stage+hgb+age),
+                                           "cr2"=list(fit="sl",
+                                                      model=Surv(time, status==2)~chemo+stage+hgb+age)
+                                           ),
+                   treat.model=chemo~stage,
+                   treat.effect="ate",
+                   no.small.steps=500,
+                   sl.models=list(mod1=list(Surv(time, status==1)~chemo+stage+hgb+age, t0 = (1:50)/2000)), 
+                   output.km=TRUE,
+                   output.bhaz=TRUE, 
+                   V=3, lambda.cvs=seq(0.1, 0.03, length=10), maxit=1e5, penalize.time=FALSE,
+                   verbose=TRUE,
+                   iterative=TRUE,
+                   tau=20, target=1)
+
+#--- uninformative censoring
+bhaz.uninformative.cens <-
+  contmle(follic, estimation=list("outcome"=list(fit="cox",
+                                                 model=Surv(time, status==1)~chemo+stage+hgb+age, lambda.cvs=seq(0.008,
+                                                                                                                 0.02, length=10)), "cens"=list(fit="cox", model=Surv(time,
+                                                                                                                                                                      status==0)~1), "cr2"=list(fit="cox", model=Surv(time,
+                                                                                                                                                                                                                      status==2)~chemo+stage+hgb+age) ), treat.model=chemo~stage,
+          treat.effect="ate", no.small.steps=500,
+          sl.models=list(mod1=list(Surv(time, status==1)~chemo+stage+hgb+age, t0
+                                   = (1:50)/2000)), output.km=TRUE, output.bhaz=TRUE, V=3,
+          lambda.cvs=seq(0.1, 0.03, length=10), maxit=1e5, penalize.time=FALSE,
+          verbose=TRUE, iterative=TRUE, tau=20, target=1)
+
+
+#######################################################################################
+
+bhazs <- bhaz.sl[[1]]
+
+bhazs[, chaz1 := cumsum(dhaz1*exp1), by = "chemo"]
+bhazs[, chaz2 := cumsum(dhaz2*exp2), by = "chemo"] 
+bhazs[, chaz0 := cumsum(dhaz0*exp0), by = "chemo"]
+
+#######################################################################################
+#+END_SRC
+
+
+#+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time.png :exports none :session *R* :cache yes :width 500 :height 500
+par(mfrow = c(2,3))  
+plot(log(bhazs[chaz1>0 & chemo==1][["time"]]),log(bhazs[chaz1>0 & chemo==1][["chaz1"]]))
+plot(log(bhazs[chaz0>0 & chemo==1][["time"]]),log(bhazs[chaz0>0 & chemo==1][["chaz0"]])) 
+plot(log(bhazs[chaz2>0 & chemo==1][["time"]]),log(bhazs[chaz2>0 & chemo==1][["chaz2"]])) 
+plot(log(bhazs[chaz1>0 & chemo==0][["time"]]),log(bhazs[chaz1>0 & chemo==0][["chaz1"]]))
+plot(log(bhazs[chaz0>0 & chemo==0][["time"]]),log(bhazs[chaz0>0 & chemo==0][["chaz0"]])) 
+plot(log(bhazs[chaz2>0 & chemo==0][["time"]]),log(bhazs[chaz2>0 & chemo==0][["chaz2"]]))
+#+END_SRC
+
+#+RESULTS[(2022-07-13 14:52:35) 876b324427583dd1cce52756fc5e0e712fb0f8c0]:
+[[file:./figures/fig-log-hazards-log-time.png]]
