@@ -138,13 +138,13 @@ bhazs[, chaz0 := cumsum(dhaz0*exp0), by = "chemo"]
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time.png :exports none :session *R* :cache yes :width 500 :height 500
 par(mfrow = c(2,3))  
-plot(log(bhazs[chaz1>0 & chemo==1][["time"]]),log(bhazs[chaz1>0 & chemo==1][["chaz1"]]))
-plot(log(bhazs[chaz0>0 & chemo==1][["time"]]),log(bhazs[chaz0>0 & chemo==1][["chaz0"]])) 
-plot(log(bhazs[chaz2>0 & chemo==1][["time"]]),log(bhazs[chaz2>0 & chemo==1][["chaz2"]])) 
-plot(log(bhazs[chaz1>0 & chemo==0][["time"]]),log(bhazs[chaz1>0 & chemo==0][["chaz1"]]))
-plot(log(bhazs[chaz0>0 & chemo==0][["time"]]),log(bhazs[chaz0>0 & chemo==0][["chaz0"]])) 
-plot(log(bhazs[chaz2>0 & chemo==0][["time"]]),log(bhazs[chaz2>0 & chemo==0][["chaz2"]]))
+plot(log(bhazs[chaz1>0 & chemo==1][["time"]]),log(bhazs[chaz1>0 & chemo==1][["chaz1"]]), xlab="log(time)", ylab="log(H1.1)")
+plot(log(bhazs[chaz0>0 & chemo==1][["time"]]),log(bhazs[chaz0>0 & chemo==1][["chaz0"]]), xlab="log(time)", ylab="log(H0.1)") 
+plot(log(bhazs[chaz2>0 & chemo==1][["time"]]),log(bhazs[chaz2>0 & chemo==1][["chaz2"]]), xlab="log(time)", ylab="log(H2.1)") 
+plot(log(bhazs[chaz1>0 & chemo==0][["time"]]),log(bhazs[chaz1>0 & chemo==0][["chaz1"]]), xlab="log(time)", ylab="log(H1.0)")
+plot(log(bhazs[chaz0>0 & chemo==0][["time"]]),log(bhazs[chaz0>0 & chemo==0][["chaz0"]]), xlab="log(time)", ylab="log(H0.0)") 
+plot(log(bhazs[chaz2>0 & chemo==0][["time"]]),log(bhazs[chaz2>0 & chemo==0][["chaz2"]]), xlab="log(time)", ylab="log(H2.0)")
 #+END_SRC
 
-#+RESULTS[(2022-07-13 14:52:35) 876b324427583dd1cce52756fc5e0e712fb0f8c0]:
+#+RESULTS[(2022-07-13 14:54:51) 53c17959b2eb70bd758aa87ceb193ec7b26f03c4]:
 [[file:./figures/fig-log-hazards-log-time.png]]
