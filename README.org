@@ -1,0 +1,63 @@
+* Web appendix
+
+This is the web appendix to our manuscript entitled /Estimation of/
+/time-specific intervention effects on continuously distributed/
+/time-to-event outcomes by targeted maximum likelihood estimation/.
+
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results none :exports none  :session *R* :cache yes  
+  setwd("~/research/TMLE-from-2020june/survival-baseline/Web-appendix-iterative-competing-risks-tmle")
+#+END_SRC
+
+** Overview
+
+
+** Load packages and functions
+
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results none :exports code  :session *R* :cache yes  
+library(data.table)
+library(zoo)
+library(glmnet)
+library(survival)
+library(stringr)
+library(ltmle)
+library(nleqslv)
+library(parallel)
+library(foreach)
+library(doParallel)
+library(prodlim)
+library(gridExtra)
+library(survival)
+library(riskRegression)
+library(Matrix)
+library(hdnom)
+library(MASS)
+library(xtable)
+library(timereg)
+library(cmprsk)
+library(randomForestSRC)
+#+END_SRC    
+
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results none :exports code  :session *R* :cache yes  
+source("./R/sim.data.continuous.R") 
+source("./R/contmle.R") 
+source("./R/cox.loss.fun.R") 
+source("./R/lebesgue.loss.fun.R")
+source("./R/cv.fun.R")     
+source("./R/basis.fun.R")
+source("./R/hal.screening.R")
+source("./R/fit.hal.R")   
+source("./R/cox.sl.R")  
+source("./R/fit.categorical.R")
+source("./R/predict.catfit.R")
+#+END_SRC    
+
+
+** Data example
+
+
+
+
+*** Simulating data 
