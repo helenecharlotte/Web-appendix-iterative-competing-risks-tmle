@@ -137,17 +137,70 @@ bhazs[, chaz0 := cumsum(dhaz0*exp0), by = "chemo"]
 
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time.png :exports none :session *R* :cache yes :width 500 :height 500
-par(mfrow = c(2,3))  
-plot(log(bhazs[chaz1>0 & chemo==1][["time"]]),log(bhazs[chaz1>0 & chemo==1][["chaz1"]]), xlab="log(time)", ylab="log(H1.1)")
-plot(log(bhazs[chaz0>0 & chemo==1][["time"]]),log(bhazs[chaz0>0 & chemo==1][["chaz0"]]), xlab="log(time)", ylab="log(H0.1)") 
-plot(log(bhazs[chaz2>0 & chemo==1][["time"]]),log(bhazs[chaz2>0 & chemo==1][["chaz2"]]), xlab="log(time)", ylab="log(H2.1)") 
-plot(log(bhazs[chaz1>0 & chemo==0][["time"]]),log(bhazs[chaz1>0 & chemo==0][["chaz1"]]), xlab="log(time)", ylab="log(H1.0)")
-plot(log(bhazs[chaz0>0 & chemo==0][["time"]]),log(bhazs[chaz0>0 & chemo==0][["chaz0"]]), xlab="log(time)", ylab="log(H0.0)") 
-plot(log(bhazs[chaz2>0 & chemo==0][["time"]]),log(bhazs[chaz2>0 & chemo==0][["chaz2"]]), xlab="log(time)", ylab="log(H2.0)")
+bhazs.long <- melt(bhazs, id.vars=c("chemo", "time"))
+bhazs.long[, variable2:=substr(variable,1,4)]
+bhazs.long <- bhazs.long[variable2=="chaz"][, status:=paste0("status = ", gsub("chaz", "", variable))]
+bhazs.long[, chemo:=paste0("chemo = ", chemo)]
+
+ggplot(bhazs.long) + geom_point(aes(x=log(time), y=log(value))) +
+  facet_grid(chemo~status, scales="free")+theme_bw()+
+  theme(axis.text=element_text(size=12),axis.title=element_text(size=18),legend.position="none",
+        strip.text = element_text(size=16),
+        strip.background = element_blank())+
+  ylab("log(chaz)")
 #+END_SRC
 
-#+RESULTS[(2022-07-13 14:54:51) 53c17959b2eb70bd758aa87ceb193ec7b26f03c4]:
+#+RESULTS[(2022-07-13 15:18:40) a0fdb4f3794e9dbd283027fa7d02b9b37b2d5401]:
 [[file:./figures/fig-log-hazards-log-time.png]]
+
+#+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time-hazard1-changepoint.png :exports none :session *R* :cache yes :width 500 :height 500
+
+log.t0.1 <- -0.5
+log.t1.1 <- 0.75
+log.t2.1 <- 2
+
+kmin.1.t1.1 <- min((1:nrow(bhazs[chaz1>0 & chemo==1]))[log(bhazs[chaz1>0 & chemo==1][["time"]])>log.t0.1])
+kmax.1.t1.1 <- max((1:nrow(bhazs[chaz1>0 & chemo==1]))[log(bhazs[chaz1>0 & chemo==1][["time"]])<log.t1.1])
+kmin.1.t1.0 <- min((1:nrow(bhazs[chaz1>0 & chemo==0]))[log(bhazs[chaz1>0 & chemo==0][["time"]])>log.t0.1])
+kmax.1.t1.0 <- max((1:nrow(bhazs[chaz1>0 & chemo==0]))[log(bhazs[chaz1>0 & chemo==0][["time"]])<log.t1.1])
+
+kmin.1.t2.1 <- min((1:nrow(bhazs[chaz1>0 & chemo==1]))[log(bhazs[chaz1>0 & chemo==1][["time"]])>log.t1.1])
+kmax.1.t2.1 <- max((1:nrow(bhazs[chaz1>0 & chemo==1]))[log(bhazs[chaz1>0 & chemo==1][["time"]])<log.t2.1])
+kmin.1.t2.0 <- min((1:nrow(bhazs[chaz1>0 & chemo==0]))[log(bhazs[chaz1>0 & chemo==0][["time"]])>log.t1.1])
+kmax.1.t2.0 <- max((1:nrow(bhazs[chaz1>0 & chemo==0]))[log(bhazs[chaz1>0 & chemo==0][["time"]])<log.t2.1])
+
+#plot(log(bhazs[chaz1>0 & chemo==1][["time"]])[kmin.1.t1.1:kmax.1.t1.1],log(bhazs[chaz1>0 & chemo==1][["chaz1"]][kmin.1.t1.1:kmax.1.t1.1]))
+fit.status1.t1.1 <- lm(log(chaz1)~log(time), data=bhazs[chaz1>0 & chemo==1][kmin.1.t1.1:kmax.1.t1.1])
+#abline(a = coef(fit.status1.t1.1)[1], b = coef(fit.status1.t1.1)[2], col = "red")
+(gamma.status1.t1.1 <- coef(fit.status1.t1.1)[2])
+(lambda.status1.t1.1 <- exp(coef(fit.status1.t1.1)[1]/gamma.status1.t1.1))
+#plot(log(bhazs[chaz1>0 & chemo==0][["time"]])[kmin.1.t1.0:kmax.1.t1.0],log(bhazs[chaz1>0 & chemo==0][["chaz1"]][kmin.1.t1.0:kmax.1.t1.0]))
+fit.status1.t1.0 <- lm(log(chaz1)~log(time), data=bhazs[chaz1>0 & chemo==0][kmin.1.t1.0:kmax.1.t1.0])
+#abline(a = coef(fit.status1.t1.0)[1], b = coef(fit.status1.t1.0)[2], col = "red")
+(gamma.status1.t1.0 <- coef(fit.status1.t1.0)[2])
+(lambda.status1.t1.0 <- exp(coef(fit.status1.t1.0)[1]/gamma.status1.t1.0))
+
+bhazs.long[time>=exp(log.t0.1) & time<=exp(log.t1.1) & chemo=="chemo = 1" & status=="status = 1",
+           fit.chaz:=exp(gamma.status1.t1.1*log(lambda.status1.t1.1) + gamma.status1.t1.1*log(time))]
+bhazs.long[time>=exp(log.t0.1) & time<=exp(log.t1.1) & chemo=="chemo = 0" & status=="status = 1",
+           fit.chaz:=exp(gamma.status1.t1.0*log(lambda.status1.t1.0) + gamma.status1.t1.0*log(time))]
+bhazs.long[time>=exp(log.t1.1) & time<=exp(log.t2.1) & chemo=="chemo = 1" & status=="status = 1",
+           fit.chaz:=exp(gamma.status1.t2.1*log(lambda.status1.t2.1) + gamma.status1.t2.1*log(time))]
+bhazs.long[time>=exp(log.t1.1) & time<=exp(log.t2.1) & chemo=="chemo = 0" & status=="status = 1",
+           fit.chaz:=exp(gamma.status1.t2.0*log(lambda.status1.t2.0) + gamma.status1.t2.0*log(time))]
+
+ggplot(bhazs.long[!is.na(fit.chaz)]) + geom_point(aes(x=log(time), y=log(value))) +
+  geom_line(aes(log(time), y=log(fit.chaz)), col="red")+
+  facet_grid(chemo~status, scales="free")+theme_bw()+
+  theme(axis.text=element_text(size=12),axis.title=element_text(size=18),legend.position="none",
+        strip.text = element_text(size=16),
+        strip.background = element_blank())+
+  ylab("log(chaz)") 
+#+END_SRC
+
+#+RESULTS[(2022-07-13 15:22:01) edcd266ac8be55e4c4d43e1fd5ea91f45046a7a4]:
+[[file:./figures/fig-log-hazards-log-time-hazard1-changepoint.png]]
+
 
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time-hazard1-changepoint.png :exports none :session *R* :cache yes :width 500 :height 500
