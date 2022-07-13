@@ -148,3 +148,53 @@ plot(log(bhazs[chaz2>0 & chemo==0][["time"]]),log(bhazs[chaz2>0 & chemo==0][["ch
 
 #+RESULTS[(2022-07-13 14:54:51) 53c17959b2eb70bd758aa87ceb193ec7b26f03c4]:
 [[file:./figures/fig-log-hazards-log-time.png]]
+
+
+#+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time-hazard1-changepoint.png :exports none :session *R* :cache yes :width 500 :height 500
+par(mfrow=c(4,4))
+
+kmin.1.t1.1 <- min((1:nrow(bhazs[chaz1>0 & chemo==1]))[log(bhazs[chaz1>0 & chemo==1][["time"]])>-0.5])
+kmax.1.t1.1 <- max((1:nrow(bhazs[chaz1>0 & chemo==1]))[log(bhazs[chaz1>0 & chemo==1][["time"]])<0.75])
+kmin.1.t1.0 <- min((1:nrow(bhazs[chaz1>0 & chemo==0]))[log(bhazs[chaz1>0 & chemo==0][["time"]])>-0.5])
+kmax.1.t1.0 <- max((1:nrow(bhazs[chaz1>0 & chemo==0]))[log(bhazs[chaz1>0 & chemo==0][["time"]])<0.75])
+
+kmin.1.t2.1 <- min((1:nrow(bhazs[chaz1>0 & chemo==1]))[log(bhazs[chaz1>0 & chemo==1][["time"]])>0.75])
+kmax.1.t2.1 <- max((1:nrow(bhazs[chaz1>0 & chemo==1]))[log(bhazs[chaz1>0 & chemo==1][["time"]])<2])
+kmin.1.t2.0 <- min((1:nrow(bhazs[chaz1>0 & chemo==0]))[log(bhazs[chaz1>0 & chemo==0][["time"]])>0.75])
+kmax.1.t2.0 <- max((1:nrow(bhazs[chaz1>0 & chemo==0]))[log(bhazs[chaz1>0 & chemo==0][["time"]])<2])
+
+plot(log(bhazs[chaz1>0 & chemo==1][["time"]])[kmin.1.t1.1:kmax.1.t1.1],log(bhazs[chaz1>0 & chemo==1][["chaz1"]][kmin.1.t1.1:kmax.1.t1.1]))
+fit.status1.t1.1 <- lm(log(chaz1)~log(time), data=bhazs[chaz1>0 & chemo==1][kmin.1.t1.1:kmax.1.t1.1])
+abline(a = coef(fit.status1.t1.1)[1], b = coef(fit.status1.t1.1)[2], col = "red")
+(gamma.status1.t1.1 <- coef(fit.status1.t1.1)[2])
+(lambda.status1.t1.1 <- exp(coef(fit.status1.t1.1)[1]/gamma.status1.t1.1))
+plot(log(bhazs[chaz1>0 & chemo==0][["time"]])[kmin.1.t1.0:kmax.1.t1.0],log(bhazs[chaz1>0 & chemo==0][["chaz1"]][kmin.1.t1.0:kmax.1.t1.0]))
+fit.status1.t1.0 <- lm(log(chaz1)~log(time), data=bhazs[chaz1>0 & chemo==0][kmin.1.t1.0:kmax.1.t1.0])
+abline(a = coef(fit.status1.t1.0)[1], b = coef(fit.status1.t1.0)[2], col = "red")
+(gamma.status1.t1.0 <- coef(fit.status1.t1.0)[2])
+(lambda.status1.t1.0 <- exp(coef(fit.status1.t1.0)[1]/gamma.status1.t1.0))
+
+plot(bhazs[chemo == 1][["time"]], bhazs[chemo == 1][["chaz1"]], type="l")
+lines(bhazs[chemo == 1][["time"]], exp(gamma.status1.t1.1*log(lambda.status1.t1.1) + gamma.status1.t1.1*log(bhazs[chemo == 1][["time"]])), col="red")
+plot(bhazs[chemo == 0][["time"]], bhazs[chemo == 0][["chaz1"]], type="l")
+lines(bhazs[chemo == 0][["time"]], exp(gamma.status1.t1.0*log(lambda.status1.t1.0) + gamma.status1.t1.0*log(bhazs[chemo == 0][["time"]])), col="red")
+
+plot(log(bhazs[chaz1>0 & chemo==1][["time"]])[kmin.1.t2.1:kmax.1.t2.1],log(bhazs[chaz1>0 & chemo==1][["chaz1"]][kmin.1.t2.1:kmax.1.t2.1]))
+fit.status1.t2.1 <- lm(log(chaz1)~log(time), data=bhazs[chaz1>0 & chemo==1][kmin.1.t2.1:kmax.1.t2.1])
+abline(a = coef(fit.status1.t2.1)[1], b = coef(fit.status1.t2.1)[2], col = "red")
+(gamma.status1.t2.1 <- coef(fit.status1.t2.1)[2])
+(lambda.status1.t2.1 <- exp(coef(fit.status1.t2.1)[1]/gamma.status1.t2.1))
+plot(log(bhazs[chaz1>0 & chemo==0][["time"]])[kmin.1.t2.0:kmax.1.t2.0],log(bhazs[chaz1>0 & chemo==0][["chaz1"]][kmin.1.t2.0:kmax.1.t2.0]))
+fit.status1.t2.0 <- lm(log(chaz1)~log(time), data=bhazs[chaz1>0 & chemo==0][kmin.1.t2.0:kmax.1.t2.0])
+abline(a = coef(fit.status1.t2.0)[1], b = coef(fit.status1.t2.0)[2], col = "red")
+(gamma.status1.t2.0 <- coef(fit.status1.t2.0)[2])
+(lambda.status1.t2.0 <- exp(coef(fit.status1.t2.0)[1]/gamma.status1.t2.0))
+
+plot(bhazs[chemo == 1][["time"]], bhazs[chemo == 1][["chaz1"]], type="l")
+lines(bhazs[chemo == 1][["time"]], exp(gamma.status1.t2.1*log(lambda.status1.t2.1) + gamma.status1.t2.1*log(bhazs[chemo == 1][["time"]])), col="red")
+plot(bhazs[chemo == 0][["time"]], bhazs[chemo == 0][["chaz1"]], type="l")
+lines(bhazs[chemo == 0][["time"]], exp(gamma.status1.t2.0*log(lambda.status1.t2.0) + gamma.status1.t2.0*log(bhazs[chemo == 0][["time"]])), col="red")
+#+END_SRC
+
+#+RESULTS[(2022-07-13 14:56:31) 3b98685c61314b945df946251c3f9225365512d6]:
+[[file:./figures/fig-log-hazards-log-time-hazard1-changepoint.png]]
