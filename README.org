@@ -153,34 +153,35 @@ ggplot(bhazs.long) + geom_point(aes(x=log(time), y=log(value))) +
 #+RESULTS[(2022-07-13 15:18:40) a0fdb4f3794e9dbd283027fa7d02b9b37b2d5401]:
 [[file:./figures/fig-log-hazards-log-time.png]]
 
+*** Status = 1
+
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time-hazard1-changepoint.png :exports none :session *R* :cache yes :width 500 :height 500
+log.t0.1 <- -0.5
+log.t1.1 <- 0.75
+log.t2.1 <- 2
 
-  log.t0.1 <- -0.5
-  log.t1.1 <- 0.75
-  log.t2.1 <- 2
+kmin.1.t1.1 <- min((1:nrow(bhazs[chaz1>0 & chemo==1]))[log(bhazs[chaz1>0 & chemo==1][["time"]])>log.t0.1])
+kmax.1.t1.1 <- max((1:nrow(bhazs[chaz1>0 & chemo==1]))[log(bhazs[chaz1>0 & chemo==1][["time"]])<log.t1.1])
+kmin.1.t1.0 <- min((1:nrow(bhazs[chaz1>0 & chemo==0]))[log(bhazs[chaz1>0 & chemo==0][["time"]])>log.t0.1])
+kmax.1.t1.0 <- max((1:nrow(bhazs[chaz1>0 & chemo==0]))[log(bhazs[chaz1>0 & chemo==0][["time"]])<log.t1.1])
 
-  kmin.1.t1.1 <- min((1:nrow(bhazs[chaz1>0 & chemo==1]))[log(bhazs[chaz1>0 & chemo==1][["time"]])>log.t0.1])
-  kmax.1.t1.1 <- max((1:nrow(bhazs[chaz1>0 & chemo==1]))[log(bhazs[chaz1>0 & chemo==1][["time"]])<log.t1.1])
-  kmin.1.t1.0 <- min((1:nrow(bhazs[chaz1>0 & chemo==0]))[log(bhazs[chaz1>0 & chemo==0][["time"]])>log.t0.1])
-  kmax.1.t1.0 <- max((1:nrow(bhazs[chaz1>0 & chemo==0]))[log(bhazs[chaz1>0 & chemo==0][["time"]])<log.t1.1])
+kmin.1.t2.1 <- min((1:nrow(bhazs[chaz1>0 & chemo==1]))[log(bhazs[chaz1>0 & chemo==1][["time"]])>log.t1.1])
+kmax.1.t2.1 <- max((1:nrow(bhazs[chaz1>0 & chemo==1]))[log(bhazs[chaz1>0 & chemo==1][["time"]])<log.t2.1])
+kmin.1.t2.0 <- min((1:nrow(bhazs[chaz1>0 & chemo==0]))[log(bhazs[chaz1>0 & chemo==0][["time"]])>log.t1.1])
+kmax.1.t2.0 <- max((1:nrow(bhazs[chaz1>0 & chemo==0]))[log(bhazs[chaz1>0 & chemo==0][["time"]])<log.t2.1])
 
-  kmin.1.t2.1 <- min((1:nrow(bhazs[chaz1>0 & chemo==1]))[log(bhazs[chaz1>0 & chemo==1][["time"]])>log.t1.1])
-  kmax.1.t2.1 <- max((1:nrow(bhazs[chaz1>0 & chemo==1]))[log(bhazs[chaz1>0 & chemo==1][["time"]])<log.t2.1])
-  kmin.1.t2.0 <- min((1:nrow(bhazs[chaz1>0 & chemo==0]))[log(bhazs[chaz1>0 & chemo==0][["time"]])>log.t1.1])
-  kmax.1.t2.0 <- max((1:nrow(bhazs[chaz1>0 & chemo==0]))[log(bhazs[chaz1>0 & chemo==0][["time"]])<log.t2.1])
+#plot(log(bhazs[chaz1>0 & chemo==1][["time"]])[kmin.1.t1.1:kmax.1.t1.1],log(bhazs[chaz1>0 & chemo==1][["chaz1"]][kmin.1.t1.1:kmax.1.t1.1]))
+fit.status1.t1.1 <- lm(log(chaz1)~log(time), data=bhazs[chaz1>0 & chemo==1][kmin.1.t1.1:kmax.1.t1.1])
+#abline(a = coef(fit.status1.t1.1)[1], b = coef(fit.status1.t1.1)[2], col = "red")
+(gamma.status1.t1.1 <- coef(fit.status1.t1.1)[2])
+(lambda.status1.t1.1 <- exp(coef(fit.status1.t1.1)[1]/gamma.status1.t1.1))
+#plot(log(bhazs[chaz1>0 & chemo==0][["time"]])[kmin.1.t1.0:kmax.1.t1.0],log(bhazs[chaz1>0 & chemo==0][["chaz1"]][kmin.1.t1.0:kmax.1.t1.0]))
+fit.status1.t1.0 <- lm(log(chaz1)~log(time), data=bhazs[chaz1>0 & chemo==0][kmin.1.t1.0:kmax.1.t1.0])
+#abline(a = coef(fit.status1.t1.0)[1], b = coef(fit.status1.t1.0)[2], col = "red")
+(gamma.status1.t1.0 <- coef(fit.status1.t1.0)[2])
+(lambda.status1.t1.0 <- exp(coef(fit.status1.t1.0)[1]/gamma.status1.t1.0))
 
-  #plot(log(bhazs[chaz1>0 & chemo==1][["time"]])[kmin.1.t1.1:kmax.1.t1.1],log(bhazs[chaz1>0 & chemo==1][["chaz1"]][kmin.1.t1.1:kmax.1.t1.1]))
-  fit.status1.t1.1 <- lm(log(chaz1)~log(time), data=bhazs[chaz1>0 & chemo==1][kmin.1.t1.1:kmax.1.t1.1])
-  #abline(a = coef(fit.status1.t1.1)[1], b = coef(fit.status1.t1.1)[2], col = "red")
-  (gamma.status1.t1.1 <- coef(fit.status1.t1.1)[2])
-  (lambda.status1.t1.1 <- exp(coef(fit.status1.t1.1)[1]/gamma.status1.t1.1))
-  #plot(log(bhazs[chaz1>0 & chemo==0][["time"]])[kmin.1.t1.0:kmax.1.t1.0],log(bhazs[chaz1>0 & chemo==0][["chaz1"]][kmin.1.t1.0:kmax.1.t1.0]))
-  fit.status1.t1.0 <- lm(log(chaz1)~log(time), data=bhazs[chaz1>0 & chemo==0][kmin.1.t1.0:kmax.1.t1.0])
-  #abline(a = coef(fit.status1.t1.0)[1], b = coef(fit.status1.t1.0)[2], col = "red")
-  (gamma.status1.t1.0 <- coef(fit.status1.t1.0)[2])
-  (lambda.status1.t1.0 <- exp(coef(fit.status1.t1.0)[1]/gamma.status1.t1.0))
-
- # plot(log(bhazs[chaz1>0 & chemo==1][["time"]])[kmin.1.t2.1:kmax.1.t2.1],log(bhazs[chaz1>0 & chemo==1][["chaz1"]][kmin.1.t2.1:kmax.1.t2.1]))
+# plot(log(bhazs[chaz1>0 & chemo==1][["time"]])[kmin.1.t2.1:kmax.1.t2.1],log(bhazs[chaz1>0 & chemo==1][["chaz1"]][kmin.1.t2.1:kmax.1.t2.1]))
 fit.status1.t2.1 <- lm(log(chaz1)~log(time), data=bhazs[chaz1>0 & chemo==1][kmin.1.t2.1:kmax.1.t2.1])
 #abline(a = coef(fit.status1.t2.1)[1], b = coef(fit.status1.t2.1)[2], col = "red")
 (gamma.status1.t2.1 <- coef(fit.status1.t2.1)[2])
@@ -191,22 +192,22 @@ fit.status1.t2.0 <- lm(log(chaz1)~log(time), data=bhazs[chaz1>0 & chemo==0][kmin
 (gamma.status1.t2.0 <- coef(fit.status1.t2.0)[2])
 (lambda.status1.t2.0 <- exp(coef(fit.status1.t2.0)[1]/gamma.status1.t2.0))
 
-  bhazs.long[time>=exp(log.t0.1) & time<=exp(log.t1.1) & chemo=="chemo = 1" & status=="status = 1",
-	     fit.chaz:=exp(gamma.status1.t1.1*log(lambda.status1.t1.1) + gamma.status1.t1.1*log(time))]
-  bhazs.long[time>=exp(log.t0.1) & time<=exp(log.t1.1) & chemo=="chemo = 0" & status=="status = 1",
-	     fit.chaz:=exp(gamma.status1.t1.0*log(lambda.status1.t1.0) + gamma.status1.t1.0*log(time))]
-  bhazs.long[time>=exp(log.t1.1) & time<=exp(log.t2.1) & chemo=="chemo = 1" & status=="status = 1",
-	     fit.chaz:=exp(gamma.status1.t2.1*log(lambda.status1.t2.1) + gamma.status1.t2.1*log(time))]
-  bhazs.long[time>=exp(log.t1.1) & time<=exp(log.t2.1) & chemo=="chemo = 0" & status=="status = 1",
-	     fit.chaz:=exp(gamma.status1.t2.0*log(lambda.status1.t2.0) + gamma.status1.t2.0*log(time))]
+bhazs.long[time>=exp(log.t0.1) & time<=exp(log.t1.1) & chemo=="chemo = 1" & status=="status = 1",
+           fit.chaz:=exp(gamma.status1.t1.1*log(lambda.status1.t1.1) + gamma.status1.t1.1*log(time))]
+bhazs.long[time>=exp(log.t0.1) & time<=exp(log.t1.1) & chemo=="chemo = 0" & status=="status = 1",
+           fit.chaz:=exp(gamma.status1.t1.0*log(lambda.status1.t1.0) + gamma.status1.t1.0*log(time))]
+bhazs.long[time>=exp(log.t1.1) & time<=exp(log.t2.1) & chemo=="chemo = 1" & status=="status = 1",
+           fit.chaz:=exp(gamma.status1.t2.1*log(lambda.status1.t2.1) + gamma.status1.t2.1*log(time))]
+bhazs.long[time>=exp(log.t1.1) & time<=exp(log.t2.1) & chemo=="chemo = 0" & status=="status = 1",
+           fit.chaz:=exp(gamma.status1.t2.0*log(lambda.status1.t2.0) + gamma.status1.t2.0*log(time))]
 
-  ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) + geom_point(aes(x=log(time), y=log(value))) +
-    geom_line(aes(log(time), y=log(fit.chaz)), col="red")+
-    facet_grid(chemo~status, scales="free")+theme_bw()+
-    theme(axis.text=element_text(size=12),axis.title=element_text(size=18),legend.position="none",
-	  strip.text = element_text(size=16),
-	  strip.background = element_blank())+
-    ylab("log(chaz)") 
+ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) + geom_point(aes(x=log(time), y=log(value))) +
+  geom_line(aes(log(time), y=log(fit.chaz)), col="red")+
+  facet_grid(chemo~status, scales="free")+theme_bw()+
+  theme(axis.text=element_text(size=12),axis.title=element_text(size=18),legend.position="none",
+        strip.text = element_text(size=16),
+        strip.background = element_blank())+
+  ylab("log(chaz)") 
 #+END_SRC
 
 #+RESULTS[(2022-07-13 15:28:25) f78bdf93318e2d479690bde18a5b926717d0c70b]:
@@ -236,9 +237,10 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) +
 #+RESULTS[(2022-07-13 15:28:29) ef71bb292e62990a3d32085bd7998f3c2d8202ab]:
 [[file:./figures/fig-log-hazards-time-hazard1-changepoint.png]]
 
+*** Status = 2
+
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time-hazard2-changepoint.png :exports none :session *R* :cache yes :width 500 :height 500
-
 log.t0.2 <- 0 
 log.t1.2 <- 1.5
 log.t2.2 <- 3
@@ -321,9 +323,9 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 2"]) +
 [[file:./figures/fig-log-hazards-time-hazard2-changepoint.png]]
 
 
+*** Status = 0
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time-hazard0-changepoint.png :exports none :session *R* :cache yes :width 500 :height 500
-
 log.t0.2 <- 1.2
 log.t1.2 <- 1.9
 log.t2.2 <- 3.2
