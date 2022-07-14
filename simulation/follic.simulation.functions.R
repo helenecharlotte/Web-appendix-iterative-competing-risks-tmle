@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:52) 
 ## Version: 
-## Last-Updated: Jul 14 2022 (11:53) 
+## Last-Updated: Jul 14 2022 (13:51) 
 ##           By: Helene
-##     Update #: 3
+##     Update #: 11
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -26,18 +26,23 @@ simulate.change.weibull.3 <- function(seed = 100,
                                           nu.A1.t1 = gamma.status1.t1.1,
                                           nu.A1.t2 = gamma.status1.t2.1,
                                           nu.A1.t3 = gamma.status1.t3.1,
+                                          nu.A1.t4 = gamma.status1.t4.1,
                                           nu.A0.t1 = gamma.status1.t1.0,
                                           nu.A0.t2 = gamma.status1.t2.0,
                                           nu.A0.t3 = gamma.status1.t3.0,
+                                          nu.A0.t4 = gamma.status1.t4.0,
                                           eta.A1.t1 = lambda.status1.t1.1^gamma.status1.t1.1,
                                           eta.A1.t2 = lambda.status1.t2.1^gamma.status1.t2.1,
                                           eta.A1.t3 = lambda.status1.t3.1^gamma.status1.t3.1,
+                                          eta.A1.t4 = lambda.status1.t4.1^gamma.status1.t4.1,
                                           eta.A0.t1 = lambda.status1.t1.0^gamma.status1.t1.0,
                                           eta.A0.t2 = lambda.status1.t2.0^gamma.status1.t2.0,
-                                          eta.A0.t3 = lambda.status1.t3.0^gamma.status1.t3.0                                            
+                                          eta.A0.t3 = lambda.status1.t3.0^gamma.status1.t3.0,
+                                          eta.A0.t4 = lambda.status1.t4.0^gamma.status1.t4.0                                            
                                       ),
                                       t0 = log(bhazs[chaz1>0 & chemo==0][["time"]])[kmax.1.t1.0],
                                       t1 = log(bhazs[chaz1>0 & chemo==0][["time"]])[kmax.1.t2.0],
+                                      t2 = log(bhazs[chaz1>0 & chemo==0][["time"]])[kmax.1.t3.0],
                                       counterfactual = NULL,
                                       observed.covars = TRUE,
                                       fit.cox = bhaz.sl[["1"]]) {
@@ -52,38 +57,84 @@ simulate.change.weibull.3 <- function(seed = 100,
         exp.covar <- exp(0)
     }
 
-    Lambda.inv <- function(u, t, nu, eta, nu2=nu, eta2=eta, nu3=nu, eta3=eta) {
-        return( rowSums(cbind((u <= (eta*exp.covar)*t0^{nu}) *
-                              (( (u + eta*exp.covar*t^{nu}) /
-                                 (eta*exp.covar) )^{1/nu} - t),
-        (u > (eta*exp.covar)*t0^{nu} & u <= (eta2*exp.covar)*t1^{nu2}) *
-        (( (u - (eta2*exp.covar)*t0^{nu2} +
-            eta2*exp.covar*t0^{nu2}) /
-           (eta2*exp.covar) )^{1/nu2} - t),
-        (u > (eta2*exp.covar)*t1^{nu2}) *
-        (( (u - (eta3*exp.covar)*t1^{nu3} +
-            eta3*exp.covar*t1^{nu3}) /
-           (eta3*exp.covar) )^{1/nu3} - t)), na.rm=TRUE) )
+    if (any(names(change.weibull.parameters)%in%"nu.A1.t4")) {
+        
+        Lambda.inv <- function(u, t, nu, eta, nu2=nu, eta2=eta, nu3=nu, eta3=eta, nu4=nu, eta4=eta) {
+            return( rowSums(cbind((u <= (eta*exp.covar)*t0^{nu}) *
+                                  (( (u + eta*exp.covar*t^{nu}) /
+                                     (eta*exp.covar) )^{1/nu} - t),
+            (u > (eta*exp.covar)*t0^{nu} & u <= (eta2*exp.covar)*t1^{nu2}) *
+            (( (u - (eta2*exp.covar)*t0^{nu2} +
+                eta2*exp.covar*t0^{nu2}) /
+               (eta2*exp.covar) )^{1/nu2} - t),
+            (u > (eta2*exp.covar)*t1^{nu2} & u <= (eta3*exp.covar)*t2^{nu3}) *
+            (( (u - (eta3*exp.covar)*t1^{nu3} +
+                eta3*exp.covar*t1^{nu3}) /
+               (eta3*exp.covar) )^{1/nu3} - t),
+            (u > (eta3*exp.covar)*t2^{nu3}) *
+            (( (u - (eta4*exp.covar)*t2^{nu4} +
+                eta4*exp.covar*t1^{nu4}) /
+               (eta4*exp.covar) )^{1/nu4} - t)), na.rm=TRUE) )
+        }
+
+        U <- -log(runif(nrow(follic.sim)))
+
+        Tout.A1 <- Lambda.inv(U, 0,
+                              nu = change.weibull.parameters[["nu.A1.t1"]],
+                              eta = change.weibull.parameters[["eta.A1.t1"]],
+                              nu2 = change.weibull.parameters[["nu.A1.t2"]],
+                              eta2 = change.weibull.parameters[["eta.A1.t2"]],
+                              nu3 = change.weibull.parameters[["nu.A1.t3"]],
+                              eta3 = change.weibull.parameters[["eta.A1.t3"]],
+                              nu4 = change.weibull.parameters[["nu.A1.t4"]],
+                              eta4 = change.weibull.parameters[["eta.A1.t4"]])
+
+        Tout.A0 <- Lambda.inv(U, 0,
+                              nu = change.weibull.parameters[["nu.A0.t1"]],
+                              eta = change.weibull.parameters[["eta.A0.t1"]],
+                              nu2 = change.weibull.parameters[["nu.A0.t2"]],
+                              eta2 = change.weibull.parameters[["eta.A0.t2"]],
+                              nu3 = change.weibull.parameters[["nu.A0.t3"]],
+                              eta3 = change.weibull.parameters[["eta.A0.t3"]],
+                              nu4 = change.weibull.parameters[["nu.A0.t4"]],
+                              eta4 = change.weibull.parameters[["eta.A0.t4"]])
+    } else {
+
+        Lambda.inv <- function(u, t, nu, eta, nu2=nu, eta2=eta, nu3=nu, eta3=eta) {
+            return( rowSums(cbind((u <= (eta*exp.covar)*t0^{nu}) *
+                                  (( (u + eta*exp.covar*t^{nu}) /
+                                     (eta*exp.covar) )^{1/nu} - t),
+            (u > (eta*exp.covar)*t0^{nu} & u <= (eta2*exp.covar)*t1^{nu2}) *
+            (( (u - (eta2*exp.covar)*t0^{nu2} +
+                eta2*exp.covar*t0^{nu2}) /
+               (eta2*exp.covar) )^{1/nu2} - t),
+            (u > (eta2*exp.covar)*t1^{nu2}) *
+            (( (u - (eta3*exp.covar)*t1^{nu3} +
+                eta3*exp.covar*t1^{nu3}) /
+               (eta3*exp.covar) )^{1/nu3} - t)), na.rm=TRUE) )
+        }
+
+        U <- -log(runif(nrow(follic.sim)))
+
+        Tout.A1 <- Lambda.inv(U, 0,
+                              nu = change.weibull.parameters[["nu.A1.t1"]],
+                              eta = change.weibull.parameters[["eta.A1.t1"]],
+                              nu2 = change.weibull.parameters[["nu.A1.t2"]],
+                              eta2 = change.weibull.parameters[["eta.A1.t2"]],
+                              nu3 = change.weibull.parameters[["nu.A1.t3"]],
+                              eta3 = change.weibull.parameters[["eta.A1.t3"]])
+
+        Tout.A0 <- Lambda.inv(U, 0,
+                              nu = change.weibull.parameters[["nu.A0.t1"]],
+                              eta = change.weibull.parameters[["eta.A0.t1"]],
+                              nu2 = change.weibull.parameters[["nu.A0.t2"]],
+                              eta2 = change.weibull.parameters[["eta.A0.t2"]],
+                              nu3 = change.weibull.parameters[["nu.A0.t3"]],
+                              eta3 = change.weibull.parameters[["eta.A0.t3"]])
+        
     }
 
-    U <- -log(runif(nrow(follic.sim)))
-
-    Tout.A1 <- Lambda.inv(U, 0,
-                          nu = change.weibull.parameters[["nu.A1.t1"]],
-                          eta = change.weibull.parameters[["eta.A1.t1"]],
-                          nu2 = change.weibull.parameters[["nu.A1.t2"]],
-                          eta2 = change.weibull.parameters[["eta.A1.t2"]],
-                          nu3 = change.weibull.parameters[["nu.A1.t3"]],
-                          eta3 = change.weibull.parameters[["eta.A1.t3"]])
-
-    Tout.A0 <- Lambda.inv(U, 0,
-                          nu = change.weibull.parameters[["nu.A0.t1"]],
-                          eta = change.weibull.parameters[["eta.A0.t1"]],
-                          nu2 = change.weibull.parameters[["nu.A0.t2"]],
-                          eta2 = change.weibull.parameters[["eta.A0.t2"]],
-                          nu3 = change.weibull.parameters[["nu.A0.t3"]],
-                          eta3 = change.weibull.parameters[["eta.A0.t3"]])
-
+    
     if (length(counterfactual) == 0) {
         return(Tout <- follic.sim[["chemo"]]*Tout.A1 + (1-follic.sim[["chemo"]])*Tout.A0)
     } else if (counterfactual == 1) {
@@ -170,19 +221,24 @@ simulate.follic.3 <- function(observed.covars = TRUE,
                                         nu.A1.t1 = gamma.status1.t1.1,
                                         nu.A1.t2 = gamma.status1.t2.1,
                                         nu.A1.t3 = gamma.status1.t3.1,
+                                        nu.A1.t4 = gamma.status1.t4.1,
                                         nu.A0.t1 = gamma.status1.t1.0,
                                         nu.A0.t2 = gamma.status1.t2.0,
                                         nu.A0.t3 = gamma.status1.t3.0,
+                                        nu.A0.t4 = gamma.status1.t4.0,
                                         eta.A1.t1 = lambda.status1.t1.1^gamma.status1.t1.1,
                                         eta.A1.t2 = lambda.status1.t2.1^gamma.status1.t2.1,
                                         eta.A1.t3 = lambda.status1.t3.1^gamma.status1.t3.1,
+                                        eta.A1.t4 = lambda.status1.t4.1^gamma.status1.t4.1,
                                         eta.A0.t1 = lambda.status1.t1.0^gamma.status1.t1.0,
                                         eta.A0.t2 = lambda.status1.t2.0^gamma.status1.t2.0,
-                                        eta.A0.t3 = lambda.status1.t3.0^gamma.status1.t3.0
+                                        eta.A0.t3 = lambda.status1.t3.0^gamma.status1.t3.0,
+                                        eta.A0.t4 = lambda.status1.t4.0^gamma.status1.t4.0                                            
                                     ),
                                     counterfactual = counterfactual,
                                     t0 = (bhazs[chaz1>0 & chemo==0][["time"]])[kmax.1.t1.0],
-                                    t1 = (bhazs[chaz1>0 & chemo==0][["time"]])[kmax.1.t2.0], 
+                                    t1 = (bhazs[chaz1>0 & chemo==0][["time"]])[kmax.1.t2.0],
+                                    t2 = log(bhazs[chaz1>0 & chemo==0][["time"]])[kmax.1.t3.0],
                                     fit.cox = bhaz.sl[["1"]])
 
     T2 <- simulate.change.weibull.3(follic.sim = follic.sim,

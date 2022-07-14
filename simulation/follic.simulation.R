@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:53) 
 ## Version: 
-## Last-Updated: Jul 14 2022 (12:53) 
+## Last-Updated: Jul 14 2022 (13:52) 
 ##           By: Helene
-##     Update #: 36
+##     Update #: 43
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -96,12 +96,12 @@ run.follic(get.truth = TRUE, observed.covars = FALSE, parameter = "0")
 
 no.cores <- detectCores() - 1
 
-run.follic(M = 10, verbose = TRUE, fit.initial = "cox", no.cores = no.cores)
+run.follic(M = 500, verbose = TRUE, fit.initial = "cox", no.cores = no.cores)
 
 
 ######################################################################
 
-cox.output <- follic.output.fun(M = 10,
+cox.output <- follic.output.fun(M = 500,
                                 fit.initial = "cox",
                                 informative.censoring = TRUE,
                                 observed.covars = TRUE,
@@ -114,7 +114,7 @@ if (FALSE) {
 
     #--- test covariate dependent censoring:
     
-    seed <- 291 
+    seed <- sample(10000, 1) 
     sim.follic.3 <- simulate.follic.3(observed.covars = TRUE,
                                       sim.sample = nrow(follic),
                                       counterfactual = NULL,
@@ -130,7 +130,7 @@ if (FALSE) {
 
     #--- test with independent censoring:
 
-    seed <- 291 
+    #seed <- 291 
     sim.follic.3 <- simulate.follic.3(observed.covars = TRUE,
                                       sim.sample = nrow(follic),
                                       counterfactual = NULL,

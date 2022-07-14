@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:51) 
 ## Version: 
-## Last-Updated: Jul 14 2022 (12:48) 
+## Last-Updated: Jul 14 2022 (13:50) 
 ##           By: Helene
-##     Update #: 8
+##     Update #: 9
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -66,7 +66,8 @@ bhazs[, chaz0 := cumsum(dhaz0*exp0), by = "chemo"]
 log.t0.1 <- -2#-0.5
 log.t1.1 <- -0.5#0.75
 log.t2.1 <- 2.5#2
-log.t3.1 <- 3.5
+log.t3.1 <- 3.15
+log.t4.1 <- 3.5#3
 
 kmin.1.t1.1 <- min((1:nrow(bhazs[chaz1>0 & chemo==1]))[log(bhazs[chaz1>0 & chemo==1][["time"]])>log.t0.1])
 kmax.1.t1.1 <- max((1:nrow(bhazs[chaz1>0 & chemo==1]))[log(bhazs[chaz1>0 & chemo==1][["time"]])<log.t1.1])
@@ -82,6 +83,11 @@ kmin.1.t3.1 <- min((1:nrow(bhazs[chaz0>0 & chemo==1]))[log(bhazs[chaz0>0 & chemo
 kmax.1.t3.1 <- max((1:nrow(bhazs[chaz0>0 & chemo==1]))[log(bhazs[chaz0>0 & chemo==1][["time"]])<log.t3.1])
 kmin.1.t3.0 <- min((1:nrow(bhazs[chaz0>0 & chemo==0]))[log(bhazs[chaz0>0 & chemo==0][["time"]])>log.t2.1])
 kmax.1.t3.0 <- max((1:nrow(bhazs[chaz0>0 & chemo==0]))[log(bhazs[chaz0>0 & chemo==0][["time"]])<log.t3.1])
+
+kmin.1.t4.1 <- min((1:nrow(bhazs[chaz0>0 & chemo==1]))[log(bhazs[chaz0>0 & chemo==1][["time"]])>log.t3.1])
+kmax.1.t4.1 <- max((1:nrow(bhazs[chaz0>0 & chemo==1]))[log(bhazs[chaz0>0 & chemo==1][["time"]])<log.t4.1])
+kmin.1.t4.0 <- min((1:nrow(bhazs[chaz0>0 & chemo==0]))[log(bhazs[chaz0>0 & chemo==0][["time"]])>log.t3.1])
+kmax.1.t4.0 <- max((1:nrow(bhazs[chaz0>0 & chemo==0]))[log(bhazs[chaz0>0 & chemo==0][["time"]])<log.t4.1])
 
 #plot(log(bhazs[chaz1>0 & chemo==1][["time"]])[kmin.1.t1.1:kmax.1.t1.1],log(bhazs[chaz1>0 & chemo==1][["chaz1"]][kmin.1.t1.1:kmax.1.t1.1]))
 fit.status1.t1.1 <- lm(log(chaz1)~log(time), data=bhazs[chaz1>0 & chemo==1][kmin.1.t1.1:kmax.1.t1.1])
@@ -115,6 +121,17 @@ fit.status1.t3.0 <- lm(log(chaz1)~log(time), data=bhazs[chaz1>0 & chemo==0][kmin
 #abline(a = coef(fit.status1.t3.0)[1], b = coef(fit.status1.t3.0)[2], col = "red")
 (gamma.status1.t3.0 <- coef(fit.status1.t3.0)[2])
 (lambda.status1.t3.0 <- exp(coef(fit.status1.t3.0)[1]/gamma.status1.t3.0))
+
+# plot(log(bhazs[chaz1>0 & chemo==1][["time"]])[kmin.1.t4.1:kmax.1.t4.1],log(bhazs[chaz1>0 & chemo==1][["chaz1"]][kmin.1.t4.1:kmax.1.t4.1]))
+fit.status1.t4.1 <- lm(log(chaz1)~log(time), data=bhazs[chaz1>0 & chemo==1][kmin.1.t4.1:kmax.1.t4.1])
+#abline(a = coef(fit.status1.t4.1)[1], b = coef(fit.status1.t4.1)[2], col = "red")
+(gamma.status1.t4.1 <- coef(fit.status1.t4.1)[2])
+(lambda.status1.t4.1 <- exp(coef(fit.status1.t4.1)[1]/gamma.status1.t4.1))
+#plot(log(bhazs[chaz1>0 & chemo==0][["time"]])[kmin.1.t4.0:kmax.1.t4.0],log(bhazs[chaz1>0 & chemo==0][["chaz1"]][kmin.1.t4.0:kmax.1.t4.0]))
+fit.status1.t4.0 <- lm(log(chaz1)~log(time), data=bhazs[chaz1>0 & chemo==0][kmin.1.t4.0:kmax.1.t4.0])
+#abline(a = coef(fit.status1.t4.0)[1], b = coef(fit.status1.t4.0)[2], col = "red")
+(gamma.status1.t4.0 <- coef(fit.status1.t4.0)[2])
+(lambda.status1.t4.0 <- exp(coef(fit.status1.t4.0)[1]/gamma.status1.t4.0))
 
 #######################################################################################
 #
