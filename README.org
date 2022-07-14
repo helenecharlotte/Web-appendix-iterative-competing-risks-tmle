@@ -165,13 +165,13 @@ bhazs.long[, chemo:=paste0("chemo = ", chemo)]
 ggplot(bhazs.long) + geom_point(aes(x=log(time), y=log(value))) +
   facet_grid(chemo~status, scales="free")+theme_bw()+
   theme(axis.text=element_text(size=12),axis.title=element_text(size=18),legend.position="none",
-        strip.text = element_text(size=16),
-        plot.title = element_text(size = 18, hjust = -0.25), 
+        strip.text = element_text(size=16), 
+        plot.title = element_text(size = 16, hjust = 0.9),  
         strip.background = element_blank())+ 
   ylab("log(chaz)") + ggtitle("Log cumulative hazards as functions of log observed event times:")
 #+END_SRC
 
-#+RESULTS[(2022-07-14 09:22:44) 7e78007a0677719456366eda8c1e0996a3062ef6]:
+#+RESULTS[(2022-07-14 09:25:36) a35eda64192135e27089a50fd604df0d08f5627b]:
 [[file:./figures/fig-log-hazards-log-time.png]]
 
 Idea: Fit Weibull distributions that are allowed change over time,
@@ -229,13 +229,13 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) + geom_point(aes(x=l
   geom_line(aes(log(time), y=log(fit.chaz)), col="red")+
   facet_grid(chemo~status, scales="free")+theme_bw()+
   theme(axis.text=element_text(size=12),axis.title=element_text(size=18),legend.position="none",
-        plot.title = element_text(size = 18, hjust = -0.25),
-        strip.text = element_text(size=16),
+        plot.title = element_text(size = 16, hjust = -0.15),
+        strip.text = element_text(size=16), 
         strip.background = element_blank())+  
   ylab("log(chaz)") + ggtitle("Fitting two straight lines:")
 #+END_SRC
 
-#+RESULTS[(2022-07-14 09:22:47) f344b659826eadbc4f74c27eea2446c877638a31]:
+#+RESULTS[(2022-07-14 09:26:07) 3cb935d531f2e02b979e70753cf3549722127b64]:
 [[file:./figures/fig-log-hazards-log-time-hazard1-changepoint.png]]
 
 
@@ -255,12 +255,12 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) +
   facet_grid(chemo~status, scales="free")+theme_bw()+
   theme(axis.text=element_text(size=12),axis.title=element_text(size=18),legend.position="none",
         strip.text = element_text(size=16),
-        plot.title = element_text(size = 18, hjust = -0.25),
+        plot.title = element_text(size = 16, hjust = -0.15),
         strip.background = element_blank())+
   ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:") 
 #+END_SRC
 
-#+RESULTS[(2022-07-14 09:22:51) 4b2b13575fb926ef301283e861d9b818c2936e64]:
+#+RESULTS[(2022-07-14 09:26:10) 8285e5551ba01f0a1416cb6e143a1bc95612d12f]:
 [[file:./figures/fig-hazards-time-hazard1-changepoint.png]]
 
 *** Cause two events
@@ -317,12 +317,12 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 2"]) + geom_point(aes(x=l
   facet_grid(chemo~status, scales="free")+theme_bw()+
   theme(axis.text=element_text(size=12),axis.title=element_text(size=18), legend.position="none",
         strip.text = element_text(size=16),
-        plot.title = element_text(size = 18, hjust = -0.25),
+        plot.title = element_text(size = 16, hjust = -0.15),
         strip.background = element_blank())+
   ylab("log(chaz)") + ggtitle("Fitting two straight lines:")
 #+END_SRC
 
-#+RESULTS[(2022-07-14 09:22:54) 39d66e513b145daba427bf64d7b475de1f12d2d9]:
+#+RESULTS[(2022-07-14 09:26:14) 9b945931b1ae08c6c59908bad371047b0bcb43ca]:
 [[file:./figures/fig-log-hazards-log-time-hazard2-changepoint.png]]
 
 
@@ -343,12 +343,12 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 2"]) +
   facet_grid(chemo~status, scales="free")+theme_bw()+
   theme(axis.text=element_text(size=12),axis.title=element_text(size=18),legend.position="none",
         strip.text = element_text(size=16),
-        plot.title = element_text(size = 18, hjust = -0.25),
+        plot.title = element_text(size = 16, hjust = -0.15),
         strip.background = element_blank())+
   ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:")
 #+END_SRC
 
-#+RESULTS[(2022-07-14 09:23:03) e800b301d7a47eda3fb3e1536a6f08caa2f96a8c]:
+#+RESULTS[(2022-07-14 09:26:21) 2fad2548bf5c98191eeaab2e394fe4490b5c62cb]:
 [[file:./figures/fig-hazards-time-hazard2-changepoint.png]]
 
 
@@ -405,12 +405,12 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 0"]) + geom_point(aes(x=l
   facet_grid(chemo~status, scales="free")+theme_bw()+
   theme(axis.text=element_text(size=12),axis.title=element_text(size=18), legend.position="none",
         strip.text = element_text(size=16),
-        plot.title = element_text(size = 18, hjust = -0.25),
+        plot.title = element_text(size = 16, hjust = -0.15),
         strip.background = element_blank())+ 
   ylab("log(chaz)") + ggtitle("Fitting two straight lines:")
 #+END_SRC
 
-#+RESULTS[(2022-07-14 09:23:06) 0699520b905174252253061222c832a67ecb3f87]:
+#+RESULTS[(2022-07-14 09:26:24) 6dacb353972ae9bf100d14874b792a6898beeef4]:
 [[file:./figures/fig-log-hazards-log-time-hazard0-changepoint.png]]
 
 
