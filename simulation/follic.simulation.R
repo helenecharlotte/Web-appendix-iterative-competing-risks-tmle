@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:53) 
 ## Version: 
-## Last-Updated: Jul 14 2022 (11:58) 
+## Last-Updated: Jul 14 2022 (12:14) 
 ##           By: Helene
-##     Update #: 8
+##     Update #: 21
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -72,8 +72,17 @@ follic <- follic[, -c("clinstg", "ch"), with=FALSE]
 
 ######################################################################
 
-source("./simulation-functions/estimate.weibulls.R")
-source("./simulation-functions/follic.simulation.functions.R") 
+source("./simulation/estimate.weibulls.R")
+source("./simulation/follic.simulation.functions.R")
+source("./simulation/follic.run.fun.R") 
+
+######################################################################
+
+for (tau in 1:10) run.follic(get.truth = TRUE, tau = tau)
+for (tau in 1:10) run.follic(get.truth = TRUE, parameter = "1", tau = tau)
+run.follic(get.truth = TRUE)
+run.follic(get.truth = TRUE, parameter = "1")
+run.follic(get.truth = TRUE, parameter = "0")
 
 ######################################################################
 
