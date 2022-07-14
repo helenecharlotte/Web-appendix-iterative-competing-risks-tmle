@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:51) 
 ## Version: 
-## Last-Updated: Jul 14 2022 (11:56) 
+## Last-Updated: Jul 14 2022 (12:48) 
 ##           By: Helene
-##     Update #: 4
+##     Update #: 8
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -294,6 +294,16 @@ fit.status0.independent.t3.0 <- lm(log(chaz0)~log(time), data=bhazs.uninformativ
 #abline(a = coef(fit.status0.independent.t3.0)[1], b = coef(fit.status0.independent.t3.0)[2], col = "red")
 (gamma.status0.independent.t3.0 <- coef(fit.status0.independent.t3.0)[2])
 (lambda.status0.independent.t3.0 <- exp(coef(fit.status0.independent.t3.0)[1]/gamma.status0.independent.t3.0))
+
+######################################################################
+
+#--- for simulating baseline covariates
+#
+
+p.stage <- mean(follic[["stage"]] == 1)
+p.age <- fitdistr(follic[["age"]], "normal")
+p.hgb <- fitdistr(follic[["hgb"]], "normal")
+p.chemo <- mean(follic[["chemo"]] == 1)
 
 ######################################################################
 ### estimate.weibulls

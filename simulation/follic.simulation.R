@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:53) 
 ## Version: 
-## Last-Updated: Jul 14 2022 (12:14) 
+## Last-Updated: Jul 14 2022 (12:53) 
 ##           By: Helene
-##     Update #: 21
+##     Update #: 36
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -74,15 +74,39 @@ follic <- follic[, -c("clinstg", "ch"), with=FALSE]
 
 source("./simulation/estimate.weibulls.R")
 source("./simulation/follic.simulation.functions.R")
-source("./simulation/follic.run.fun.R") 
+source("./simulation/follic.run.fun.R")
+source("./simulation/follic.output.fun.R") 
 
 ######################################################################
+#
+#--- get true values of parameters: 
 
 for (tau in 1:10) run.follic(get.truth = TRUE, tau = tau)
 for (tau in 1:10) run.follic(get.truth = TRUE, parameter = "1", tau = tau)
+
 run.follic(get.truth = TRUE)
 run.follic(get.truth = TRUE, parameter = "1")
 run.follic(get.truth = TRUE, parameter = "0")
+
+run.follic(get.truth = TRUE, observed.covars = FALSE)
+run.follic(get.truth = TRUE, observed.covars = FALSE, parameter = "1")
+run.follic(get.truth = TRUE, observed.covars = FALSE, parameter = "0")
+
+######################################################################
+
+no.cores <- detectCores() - 1
+
+run.follic(M = 10, verbose = TRUE, fit.initial = "cox", no.cores = no.cores)
+
+
+######################################################################
+
+cox.output <- follic.output.fun(M = 10,
+                                fit.initial = "cox",
+                                informative.censoring = TRUE,
+                                observed.covars = TRUE,
+                                sim.sample = nrow(follic))
+
 
 ######################################################################
 
