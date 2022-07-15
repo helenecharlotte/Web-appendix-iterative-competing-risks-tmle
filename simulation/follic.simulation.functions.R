@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:52) 
 ## Version: 
-## Last-Updated: Jul 14 2022 (13:51) 
+## Last-Updated: Jul 15 2022 (08:57) 
 ##           By: Helene
-##     Update #: 11
+##     Update #: 14
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -58,7 +58,7 @@ simulate.change.weibull.3 <- function(seed = 100,
     }
 
     if (any(names(change.weibull.parameters)%in%"nu.A1.t4")) {
-        
+
         Lambda.inv <- function(u, t, nu, eta, nu2=nu, eta2=eta, nu3=nu, eta3=eta, nu4=nu, eta4=eta) {
             return( rowSums(cbind((u <= (eta*exp.covar)*t0^{nu}) *
                                   (( (u + eta*exp.covar*t^{nu}) /
@@ -98,6 +98,7 @@ simulate.change.weibull.3 <- function(seed = 100,
                               eta3 = change.weibull.parameters[["eta.A0.t3"]],
                               nu4 = change.weibull.parameters[["nu.A0.t4"]],
                               eta4 = change.weibull.parameters[["eta.A0.t4"]])
+        
     } else {
 
         Lambda.inv <- function(u, t, nu, eta, nu2=nu, eta2=eta, nu3=nu, eta3=eta) {
