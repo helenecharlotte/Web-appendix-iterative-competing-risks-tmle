@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:53) 
 ## Version: 
-## Last-Updated: Jul 15 2022 (08:55) 
+## Last-Updated: Jul 15 2022 (11:32) 
 ##           By: Helene
-##     Update #: 65
+##     Update #: 75
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -70,6 +70,10 @@ follic[, stage:=as.numeric(clinstg==2)]
 follic[, chemo:=as.numeric(ch=="Y")]
 follic <- follic[, -c("clinstg", "ch"), with=FALSE]
 
+#-- define new variables:
+follic[, agec := age-mean(age)]
+follic[, hgbc := hgb-mean(hgb)]
+
 ######################################################################
 
 source("./simulation/estimate.weibulls.R")
@@ -81,8 +85,8 @@ source("./simulation/follic.output.fun.R")
 #
 #--- get true values of parameters: 
 
-for (tau in 1:10) run.follic(get.truth = TRUE, tau = tau)
-for (tau in 1:10) run.follic(get.truth = TRUE, parameter = "1", tau = tau)
+for (tau in c(0.25, 0.5, 0.75, 1:10)) run.follic(get.truth = TRUE, tau = tau)
+#for (tau in c(0.25, 0.5, 0.75, 1:10)) run.follic(get.truth = TRUE, parameter = "1", tau = tau)
 
 run.follic(get.truth = TRUE)
 run.follic(get.truth = TRUE, parameter = "1")
@@ -95,6 +99,11 @@ run.follic(get.truth = TRUE, observed.covars = FALSE, parameter = "0")
 ######################################################################
 
 no.cores <- detectCores() - 1
+
+run.follic(M = 499, verbose = TRUE, fit.initial = "cox", no.cores = no.cores)
+run.follic(M = 499, verbose = TRUE, fit.initial = "cox", no.cores = no.cores,
+           observed.covars = FALSE, informative.censoring = FALSE)
+
 
 run.follic(M = 500, verbose = TRUE, fit.initial = "cox", no.cores = no.cores)
 run.follic(M = 500, verbose = TRUE, fit.initial = "cox", no.cores = no.cores,
@@ -111,7 +120,7 @@ run.follic(M = 500, verbose = TRUE, fit.initial = "cox", no.cores = no.cores,
 
 ######################################################################
 
-cox.output <- follic.output.fun(M = 500,
+cox.output <- follic.output.fun(M = 499,
                                 fit.initial = "cox",
                                 informative.censoring = TRUE,
                                 observed.covars = TRUE,
