@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:53) 
 ## Version: 
-## Last-Updated: Jul 15 2022 (12:42) 
+## Last-Updated: Jul 15 2022 (13:32) 
 ##           By: Helene
-##     Update #: 83
+##     Update #: 98
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -70,6 +70,11 @@ follic[, stage:=as.numeric(clinstg==2)]
 follic[, chemo:=as.numeric(ch=="Y")]
 follic <- follic[, -c("clinstg", "ch"), with=FALSE]
 
+#-- discretized age: 
+follic[, age1 := 1*(age >= 45)]
+follic[, age2 := 1*(age >= 58)]
+follic[, age3 := 1*(age >= 65)]
+
 ######################################################################
 
 source("./simulation/estimate.weibulls.R")
@@ -95,7 +100,7 @@ run.follic(get.truth = TRUE, observed.covars = FALSE)
 
 ######################################################################
 
-no.cores <- 5#detectCores() - 1
+no.cores <- detectCores() - 1
 
 run.follic(M = 500, verbose = TRUE, fit.initial = "cox", no.cores = no.cores)
 run.follic(M = 500, verbose = TRUE, fit.initial = "cox", no.cores = no.cores,
@@ -162,12 +167,21 @@ if (FALSE) {
     sim.follic.3[, summary(time)]  
     follic[, summary(time)]
 
-    sim.follic.3[status == 1, summary(time)]  
-    follic[status == 1, summary(time)]
+    print("status = 1:") 
+    sim.follic.3[status==1, summary(time)] 
+    follic[status==1, summary(time)]
+
+    print("status = 2:")
+    sim.follic.3[status==2, summary(time)] 
+    follic[status==2, summary(time)]
+
+    print("status = 0:")
+    sim.follic.3[status==0, summary(time)] 
+    follic[status==0, summary(time)]
 
     #--- test with independent censoring:
 
-    #seed <- 291 
+    seed <- sample(10000, 1) 
     sim.follic.3 <- simulate.follic.3(observed.covars = TRUE,
                                       sim.sample = nrow(follic),
                                       counterfactual = NULL,
@@ -181,9 +195,77 @@ if (FALSE) {
     sim.follic.3[, summary(time)]  
     follic[, summary(time)]
 
-    sim.follic.3[status == 1, summary(time)]  
-    follic[status == 1, summary(time)]
+    print("status = 1:") 
+    sim.follic.3[status==1, summary(time)] 
+    follic[status==1, summary(time)]
 
+    print("status = 2:")
+    sim.follic.3[status==2, summary(time)] 
+    follic[status==2, summary(time)]
+
+    print("status = 0:")
+    sim.follic.3[status==0, summary(time)] 
+    follic[status==0, summary(time)]
+
+    #--- test covariate dependent censoring, simulated covariates:
+    
+    seed <- sample(10000, 1) 
+    sim.follic.3 <- simulate.follic.3(observed.covars = FALSE,
+                                      sim.sample = nrow(follic),
+                                      counterfactual = NULL,
+                                      seed = seed,
+                                      informative.censoring = TRUE,
+                                      keep.times = FALSE)
+
+    sim.follic.3[, table(status)]
+    follic[, table(status)]
+
+    sim.follic.3[, summary(time)]  
+    follic[, summary(time)]
+
+    print("status = 1:") 
+    sim.follic.3[status==1, summary(time)] 
+    follic[status==1, summary(time)]
+
+    print("status = 2:")
+    sim.follic.3[status==2, summary(time)] 
+    follic[status==2, summary(time)]
+
+    print("status = 0:")
+    sim.follic.3[status==0, summary(time)] 
+    follic[status==0, summary(time)]
+
+    #--- test with independent censoring, simulated covariates:
+
+    seed <- sample(10000, 1) 
+    sim.follic.3 <- simulate.follic.3(observed.covars = FALSE,
+                                      sim.sample = nrow(follic),
+                                      counterfactual = NULL,
+                                      seed = seed,
+                                      informative.censoring = FALSE,
+                                      keep.times = FALSE)
+
+    sim.follic.3[, table(status)]
+    follic[, table(status)]
+
+    sim.follic.3[, summary(time)]  
+    follic[, summary(time)]
+
+    print("status = 1:") 
+    sim.follic.3[status==1, summary(time)] 
+    follic[status==1, summary(time)]
+
+    print("status = 2:")
+    sim.follic.3[status==2, summary(time)] 
+    follic[status==2, summary(time)]
+
+    print("status = 0:")
+    sim.follic.3[status==0, summary(time)] 
+    follic[status==0, summary(time)]
+
+
+
+    
 }
 
 ######################################################################

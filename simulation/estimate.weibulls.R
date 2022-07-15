@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:51) 
 ## Version: 
-## Last-Updated: Jul 15 2022 (12:07) 
+## Last-Updated: Jul 15 2022 (13:23) 
 ##           By: Helene
-##     Update #: 64
+##     Update #: 72
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -37,36 +37,40 @@ if (FALSE) bhaz.sl <- contmle(follic, estimation=list("outcome"=list(fit="sl",
                               iterative=TRUE,
                               tau=20, target=1)
 
-bhaz.cox <- contmle(follic, estimation=list("outcome"=list(fit="cox",
-                                                          model=Surv(time, status==1)~chemo+stage+hgb+age.squared,
-                                                          changepoint = 0.1,
-                                                          lambda.cvs=seq(0.008, 0.02, length=10)),
-                                           "cens"=list(fit="cox",
-                                                       changepoint = 0.5,#1.1,#0.8,#0.5
-                                                       model=Surv(time, status==0)~chemo+stage+hgb+age),
-                                           "cr2"=list(fit="cox",#"sl",
-                                                      model=Surv(time, status==2)~chemo+stage+age.squared)
-                                           ),
-                   treat.model=chemo~stage+hgb+age,
-                   treat.effect="ate",
-                   no.small.steps=500,
-                   sl.models=list(mod1=list(Surv(time, status==1)~chemo+stage+hgb+age, t0 = (1:50)/2000),
-                                  mod2=list(Surv(time, status==1)~chemo+stage+hgb+age+age.squared, t0 = (1:50)/2000),
-                                  mod3=list(Surv(time, status==1)~chemo+stage+hgb+age+age.squared+hgb.squared, t0 = (1:50)/2000)), 
-                   output.km=TRUE,
-                   output.bhaz=TRUE, 
-                   V=3, lambda.cvs=seq(0.1, 0.03, length=10), maxit=1e5, penalize.time=FALSE,
-                   verbose=TRUE,
-                   iterative=TRUE,
-                   tau=20, target=1)
+#--- informative censoring
+bhaz.cox <-
+    contmle(follic, estimation=list("outcome"=list(fit="cox",
+                                                   model=Surv(time, status==1)~chemo+stage+hgb+age1+age2+age3+age+age.squared,
+                                                   changepoint = 0.1,
+                                                   lambda.cvs=seq(0.008, 0.02, length=10)),
+                                    "cens"=list(fit="cox",
+                                                changepoint = 0.5,#1.1,#0.8,#0.5
+                                                model=Surv(time, status==0)~chemo+stage+hgb+age),
+                                    "cr2"=list(fit="cox",#"sl",
+                                               model=Surv(time, status==2)~chemo+stage+hgb+age+age1+age2+age3+age.squared)
+                                    ),
+            treat.model=chemo~stage+hgb+age,
+            treat.effect="ate",
+            no.small.steps=500,
+            sl.models=list(mod1=list(Surv(time, status==1)~chemo+stage+hgb+age, t0 = (1:50)/2000),
+                           mod2=list(Surv(time, status==1)~chemo+stage+hgb+age+age.squared, t0 = (1:50)/2000),
+                           mod3=list(Surv(time, status==1)~chemo+stage+hgb+age+age.squared+hgb.squared, t0 = (1:50)/2000)), 
+            output.km=TRUE,
+            output.bhaz=TRUE, 
+            V=3, lambda.cvs=seq(0.1, 0.03, length=10), maxit=1e5, penalize.time=FALSE,
+            verbose=TRUE,
+            iterative=TRUE,
+            tau=20, target=1)
 
 #--- uninformative censoring
 bhaz.uninformative.cens <-
     contmle(follic, estimation=list("outcome"=list(fit="cox",
-                                                   model=Surv(time, status==1)~chemo+stage+hgb+age,
+                                                   model=Surv(time, status==1)~chemo+stage+hgb+age.squared,
+                                                   changepoint = 0.1,
                                                    lambda.cvs=seq(0.008, 0.02, length=10)),
                                     "cens"=list(fit="cox", model=Surv(time, status==0)~1),
-                                    "cr2"=list(fit="cox", model=Surv(time, status==2)~chemo+stage+hgb+age)
+                                    "cr2"=list(fit="cox",#"sl",
+                                                      model=Surv(time, status==2)~chemo+stage+hgb+age.squared)
                                     ),
             treat.model=chemo~stage+hgb+age,
             treat.effect="ate", no.small.steps=500,

@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:52) 
 ## Version: 
-## Last-Updated: Jul 15 2022 (12:48) 
+## Last-Updated: Jul 15 2022 (13:25) 
 ##           By: Helene
-##     Update #: 23
+##     Update #: 24
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -171,6 +171,9 @@ simulate.follic.3 <- function(observed.covars = TRUE,
                                  age = rnorm(sim.sample, p.age[[1]][["mean"]], p.age[[1]][["sd"]]),
                                  hgb = rnorm(sim.sample, p.hgb[[1]][["mean"]], p.hgb[[1]][["sd"]]))
         follic.sim[, age.squared := age^2]
+        follic.sim[, age1 := 1*(age >= 45)]
+        follic.sim[, age2 := 1*(age >= 58)]
+        follic.sim[, age3 := 1*(age >= 65)]
     }
 
     if (informative.censoring) {
