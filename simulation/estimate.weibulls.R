@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:51) 
 ## Version: 
-## Last-Updated: Jul 14 2022 (13:50) 
+## Last-Updated: Jul 15 2022 (09:28) 
 ##           By: Helene
-##     Update #: 9
+##     Update #: 11
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -63,8 +63,8 @@ bhazs[, chaz0 := cumsum(dhaz0*exp0), by = "chemo"]
 #
 # Cause one events (add changepoint)
 
-log.t0.1 <- -2#-0.5
-log.t1.1 <- -0.5#0.75
+log.t0.1 <- -1.2#-2#-0.5
+log.t1.1 <- 0.75#-0.5#0.75
 log.t2.1 <- 2.5#2
 log.t3.1 <- 3.15
 log.t4.1 <- 3.5#3
