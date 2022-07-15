@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:51) 
 ## Version: 
-## Last-Updated: Jul 15 2022 (11:46) 
+## Last-Updated: Jul 15 2022 (12:03) 
 ##           By: Helene
-##     Update #: 61
+##     Update #: 63
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -37,7 +37,7 @@ if (FALSE) bhaz.sl <- contmle(follic, estimation=list("outcome"=list(fit="sl",
                               iterative=TRUE,
                               tau=20, target=1)
 
-bhaz.sl <- contmle(follic, estimation=list("outcome"=list(fit="cox",
+bhaz.cox <- contmle(follic, estimation=list("outcome"=list(fit="cox",
                                                           model=Surv(time, status==1)~chemo+stage+hgb+age.squared,
                                                           changepoint = 0.1,
                                                           lambda.cvs=seq(0.008, 0.02, length=10)),
@@ -78,7 +78,7 @@ bhaz.uninformative.cens <-
 
 #######################################################################################
 
-bhazs <- bhaz.sl[[1]]
+bhazs <- bhaz.cox[[1]]
 
 bhazs[, chaz1 := cumsum(dhaz1*exp1), by = "chemo"]
 bhazs[, chaz2 := cumsum(dhaz2*exp2), by = "chemo"] 

@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:53) 
 ## Version: 
-## Last-Updated: Jul 15 2022 (11:32) 
+## Last-Updated: Jul 15 2022 (11:59) 
 ##           By: Helene
-##     Update #: 75
+##     Update #: 81
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -70,10 +70,6 @@ follic[, stage:=as.numeric(clinstg==2)]
 follic[, chemo:=as.numeric(ch=="Y")]
 follic <- follic[, -c("clinstg", "ch"), with=FALSE]
 
-#-- define new variables:
-follic[, agec := age-mean(age)]
-follic[, hgbc := hgb-mean(hgb)]
-
 ######################################################################
 
 source("./simulation/estimate.weibulls.R")
@@ -85,29 +81,24 @@ source("./simulation/follic.output.fun.R")
 #
 #--- get true values of parameters: 
 
-for (tau in c(0.25, 0.5, 0.75, 1:10)) run.follic(get.truth = TRUE, tau = tau)
+#for (tau in c(0.25, 0.5, 0.75, 1:10)) run.follic(get.truth = TRUE, tau = tau)
 #for (tau in c(0.25, 0.5, 0.75, 1:10)) run.follic(get.truth = TRUE, parameter = "1", tau = tau)
 
 run.follic(get.truth = TRUE)
-run.follic(get.truth = TRUE, parameter = "1")
-run.follic(get.truth = TRUE, parameter = "0")
+#run.follic(get.truth = TRUE, parameter = "1")
+#run.follic(get.truth = TRUE, parameter = "0")
 
 run.follic(get.truth = TRUE, observed.covars = FALSE)
-run.follic(get.truth = TRUE, observed.covars = FALSE, parameter = "1")
-run.follic(get.truth = TRUE, observed.covars = FALSE, parameter = "0")
+#run.follic(get.truth = TRUE, observed.covars = FALSE, parameter = "1")
+#run.follic(get.truth = TRUE, observed.covars = FALSE, parameter = "0")
 
 ######################################################################
 
-no.cores <- detectCores() - 1
-
-run.follic(M = 499, verbose = TRUE, fit.initial = "cox", no.cores = no.cores)
-run.follic(M = 499, verbose = TRUE, fit.initial = "cox", no.cores = no.cores,
-           observed.covars = FALSE, informative.censoring = FALSE)
-
+no.cores <- 5#detectCores() - 1
 
 run.follic(M = 500, verbose = TRUE, fit.initial = "cox", no.cores = no.cores)
 run.follic(M = 500, verbose = TRUE, fit.initial = "cox", no.cores = no.cores,
-           observed.covars = FALSE, informative.censoring = FALSE)
+           observed.covars = FALSE, informative.censoring = FALSE, sim.sample = 1000)
 
 run.follic(M = 500, verbose = FALSE, fit.initial = "rf", no.cores = 1,
            observed.covars = FALSE, informative.censoring = TRUE, sim.sample = 1000)
@@ -126,7 +117,7 @@ cox.output <- follic.output.fun(M = 499,
                                 observed.covars = TRUE,
                                 sim.sample = nrow(follic))
 
-cox.output <- follic.output.fun(M = 500,
+cox.output <- follic.output.fun(M = 499,
                                 fit.initial = "cox",
                                 informative.censoring = FALSE,
                                 observed.covars = FALSE,

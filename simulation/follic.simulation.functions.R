@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:52) 
 ## Version: 
-## Last-Updated: Jul 15 2022 (11:43) 
+## Last-Updated: Jul 15 2022 (11:58) 
 ##           By: Helene
-##     Update #: 18
+##     Update #: 22
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -170,6 +170,7 @@ simulate.follic.3 <- function(observed.covars = TRUE,
                                  chemo = rbinom(sim.sample, 1, p.chemo),
                                  age = rnorm(sim.sample, p.age[[1]][["mean"]], p.age[[1]][["sd"]]),
                                  hgb = rnorm(sim.sample, p.hgb[[1]][["mean"]], p.hgb[[1]][["sd"]]))
+        follic.sim[, age.squared := age^2]
     }
 
     if (informative.censoring) {

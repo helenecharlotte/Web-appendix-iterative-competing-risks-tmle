@@ -1272,10 +1272,10 @@ ggplot(bhazs.uninformative.cens.long[!is.na(fit.chaz) & status=="status = 0"]) +
         strip.text = element_text(size=16),
         plot.title = element_text(size = 16, hjust = -0.1), 
         strip.background = element_blank())+
-  ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:")
+  ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:") 
 #+END_SRC
 
-#+RESULTS[(2022-07-15 11:48:54) 90b88f1a00282ef39411fcf8b8ff7ce4b1b664c1]:
+#+RESULTS[(2022-07-15 12:03:41) 6297f4ae03067e46f4160d0f7d10c370d6c02236]:
 [[file:./figures/fig-hazards-time-hazard0-independent-2changepoints.png]]
 
 
