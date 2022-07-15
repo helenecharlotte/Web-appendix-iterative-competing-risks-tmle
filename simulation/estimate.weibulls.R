@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:51) 
 ## Version: 
-## Last-Updated: Jul 15 2022 (12:03) 
+## Last-Updated: Jul 15 2022 (12:07) 
 ##           By: Helene
-##     Update #: 63
+##     Update #: 64
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -68,7 +68,7 @@ bhaz.uninformative.cens <-
                                     "cens"=list(fit="cox", model=Surv(time, status==0)~1),
                                     "cr2"=list(fit="cox", model=Surv(time, status==2)~chemo+stage+hgb+age)
                                     ),
-            treat.model=chemo~stage,
+            treat.model=chemo~stage+hgb+age,
             treat.effect="ate", no.small.steps=500,
             sl.models=list(mod1=list(Surv(time, status==1)~chemo+stage+hgb+age, t0
                                      = (1:50)/2000)), output.km=TRUE, output.bhaz=TRUE, V=3,

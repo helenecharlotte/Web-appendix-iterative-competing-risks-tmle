@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:52) 
 ## Version: 
-## Last-Updated: Jul 15 2022 (11:58) 
+## Last-Updated: Jul 15 2022 (12:48) 
 ##           By: Helene
-##     Update #: 22
+##     Update #: 23
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -45,7 +45,7 @@ simulate.change.weibull.3 <- function(seed = 100,
                                       t2 = log(bhazs[chaz1>0 & chemo==0][["time"]])[kmax.1.t3.0],
                                       counterfactual = NULL,
                                       observed.covars = TRUE,
-                                      fit.cox = bhaz.sl[["1"]]) {
+                                      fit.cox = bhaz.cox[["1"]]) {
 
     set.seed(seed)
 
@@ -193,7 +193,7 @@ simulate.follic.3 <- function(observed.covars = TRUE,
                                         counterfactual = counterfactual,
                                         t0 = (bhazs[chaz0>0 & chemo==0][["time"]])[kmax.0.t1.0],
                                         t1 = (bhazs[chaz0>0 & chemo==0][["time"]])[kmax.0.t2.0], 
-                                        fit.cox = bhaz.sl[["0"]])
+                                        fit.cox = bhaz.cox[["0"]])
     } else {
         T0 <- simulate.change.weibull.3(follic.sim = follic.sim,
                                         seed = seed*1010,
@@ -241,7 +241,7 @@ simulate.follic.3 <- function(observed.covars = TRUE,
                                     t0 = (bhazs[chaz1>0 & chemo==0][["time"]])[kmax.1.t1.0],
                                     t1 = (bhazs[chaz1>0 & chemo==0][["time"]])[kmax.1.t2.0],
                                     t2 = log(bhazs[chaz1>0 & chemo==0][["time"]])[kmax.1.t3.0],
-                                    fit.cox = bhaz.sl[["1"]])
+                                    fit.cox = bhaz.cox[["1"]])
 
     T2 <- simulate.change.weibull.3(follic.sim = follic.sim,
                                     seed = seed*5010,
@@ -262,7 +262,7 @@ simulate.follic.3 <- function(observed.covars = TRUE,
                                     counterfactual = counterfactual,
                                     t0 = (bhazs[chaz2>0 & chemo==0][["time"]])[kmax.2.t1.0],
                                     t1 = (bhazs[chaz2>0 & chemo==0][["time"]])[kmax.2.t2.0], 
-                                    fit.cox = bhaz.sl[["2"]])
+                                    fit.cox = bhaz.cox[["2"]])
 
     if (length(counterfactual)>0) {
         follic.sim[, time := apply(cbind(T1, T2), 1, min)]

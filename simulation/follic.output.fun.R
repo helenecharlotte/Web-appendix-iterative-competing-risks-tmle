@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (12:51) 
 ## Version: 
-## Last-Updated: Jul 14 2022 (12:55) 
+## Last-Updated: Jul 15 2022 (12:44) 
 ##           By: Helene
-##     Update #: 7
+##     Update #: 10
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -30,6 +30,17 @@ follic.output.fun <- function(M = 500,
                               observed.covars = FALSE,
                               sim.sample = 1000
                               ) {
+
+    print(paste0("./simulation/output/",
+                 "outlist-follic-contmle",
+                 paste0("-", parameter),
+                 paste0("-seed.init", seed.init),
+                 paste0("-fit.initial", fit.initial),
+                 paste0("-tau", tau),
+                 ifelse(informative.censoring, "", "-independentcens"),
+                 ifelse(observed.covars, "", "-simulatedcovars"),
+                 ifelse(sim.sample == nrow(follic), "", paste0("-n", sim.sample)),
+                 "-M", M, ".rds"))
 
     print("#----------------------------------------------------------------------")
     print(paste0("# results for initial fit = * ", fit.initial, " * "))

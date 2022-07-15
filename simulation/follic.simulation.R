@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:53) 
 ## Version: 
-## Last-Updated: Jul 15 2022 (11:59) 
+## Last-Updated: Jul 15 2022 (12:42) 
 ##           By: Helene
-##     Update #: 81
+##     Update #: 83
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -82,6 +82,7 @@ source("./simulation/follic.output.fun.R")
 #--- get true values of parameters: 
 
 #for (tau in c(0.25, 0.5, 0.75, 1:10)) run.follic(get.truth = TRUE, tau = tau)
+#for (tau in c(0.25, 0.5, 0.75, 1:10)) run.follic(get.truth = TRUE, tau = tau, observed.covars = FALSE)
 #for (tau in c(0.25, 0.5, 0.75, 1:10)) run.follic(get.truth = TRUE, parameter = "1", tau = tau)
 
 run.follic(get.truth = TRUE)
@@ -111,7 +112,7 @@ run.follic(M = 500, verbose = TRUE, fit.initial = "cox", no.cores = no.cores,
 
 ######################################################################
 
-cox.output <- follic.output.fun(M = 499,
+cox.output <- follic.output.fun(M = 500,
                                 fit.initial = "cox",
                                 informative.censoring = TRUE,
                                 observed.covars = TRUE,

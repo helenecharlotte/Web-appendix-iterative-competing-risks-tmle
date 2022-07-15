@@ -52,7 +52,7 @@ source("./R/hal.screening.R")
 source("./R/fit.hal.R")   
 source("./R/cox.sl.R")  
 source("./R/fit.categorical.R")
-source("./R/predict.catfit.R")
+source("./R/predict.catfit.R") 
 #+END_SRC    
 
 
@@ -62,7 +62,7 @@ source("./R/predict.catfit.R")
 #+BEGIN_SRC R  :results none :exports code  :session *R* :cache yes  
 data(follic, package="randomForestSRC")
 follic <- data.table(follic) 
-
+ 
 #-- convert variables: 
 follic[, stage:=as.numeric(clinstg==2)] 
 follic[, chemo:=as.numeric(ch=="Y")]
@@ -73,7 +73,7 @@ follic <- follic[, -c("clinstg", "ch"), with=FALSE]
 Events: 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output :exports code  :session *R* :cache yes  
-follic[, table(status)]  
+follic[, table(status)]   
 #+END_SRC    
 
 #+RESULTS[(2022-07-15 11:46:54) 06f5af75623cf769951c117d5f6ef91caca8c6b4]:
@@ -162,7 +162,7 @@ bhazs[, chaz0 := cumsum(dhaz0*exp0), by = "chemo"]
 
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time.png :exports none :session *R* :cache yes :width 500 :height 500
-bhazs.long <- melt(bhazs, id.vars=c("chemo", "time")) 
+bhazs.long <- melt(bhazs, id.vars=c("chemo", "time"))  
 bhazs.long[, variable2:=substr(variable,1,4)]  
 bhazs.long <- bhazs.long[variable2=="chaz"][, status:=paste0("status = ", gsub("chaz", "", variable))]
 bhazs.long[, chemo:=paste0("chemo = ", chemo)]
@@ -176,7 +176,7 @@ ggplot(bhazs.long) + geom_point(aes(x=log(time), y=log(value))) +
   ylab("log(chaz)") + ggtitle("Log cumulative hazards as functions of log observed event times:")
 #+END_SRC
 
-#+RESULTS[(2022-07-15 11:47:07) cd22c153a1b1eab937a1d95c8560216063938ff6]:
+#+RESULTS[(2022-07-15 12:50:46) 6260e7afad6e47b09782c542689d0fa2ad123216]:
 [[file:./figures/fig-log-hazards-log-time.png]]
 
 Idea: Fit Weibull distributions that are allowed change over time,
@@ -186,7 +186,7 @@ corresponding to enforcing piecewise linearity in the previous plots.
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time-hazard1-changepoint.png :exports none :session *R* :cache yes :width 500 :height 500
 log.t0.1 <- -0.5
-log.t1.1 <- 0.75 
+log.t1.1 <- 0.75  
 log.t2.1 <- 2
 
 kmin.1.t1.1 <- min((1:nrow(bhazs[chaz1>0 & chemo==1]))[log(bhazs[chaz1>0 & chemo==1][["time"]])>log.t0.1])
@@ -241,12 +241,12 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) + geom_point(aes(x=l
   ylab("log(chaz)") + ggtitle("Fitting two straight lines:")
 #+END_SRC
 
-#+RESULTS[(2022-07-15 11:47:18) c6593bbbc3f3879e686e804da2e5ae309ddbbf3a]:
+#+RESULTS[(2022-07-15 12:50:49) 3ce6db557a7b9e37dcf4a9ed47a4e92d637ee3d0]:
 [[file:./figures/fig-log-hazards-log-time-hazard1-changepoint.png]]
 
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-hazards-time-hazard1-changepoint.png :exports none :session *R* :cache yes :width 500 :height 500
-bhazs.long[time<=exp(log.t1.1) & chemo=="chemo = 1" & status=="status = 1",
+bhazs.long[time<=exp(log.t1.1) & chemo=="chemo = 1" & status=="status = 1", 
            fit.chaz:=exp(gamma.status1.t1.1*log(lambda.status1.t1.1) + gamma.status1.t1.1*log(time))]
 bhazs.long[time<=exp(log.t1.1) & chemo=="chemo = 0" & status=="status = 1",
            fit.chaz:=exp(gamma.status1.t1.0*log(lambda.status1.t1.0) + gamma.status1.t1.0*log(time))]
@@ -266,13 +266,13 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) +
   ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:") 
 #+END_SRC
 
-#+RESULTS[(2022-07-15 11:47:23) 34c8bd132f2af300370ef84b02e06eaca14c9dc0]:
+#+RESULTS[(2022-07-15 12:51:06) 434fd4ca9ef1a94c002ed149aef53aa905f74f99]:
 [[file:./figures/fig-hazards-time-hazard1-changepoint.png]]
 
 *** Cause one events (add changepoint)
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time-hazard1-2changepoints.png :exports none :session *R* :cache yes :width 500 :height 500
-bhazs <- bhaz.cox[[1]]
+bhazs <- bhaz.cox[[1]] 
 
 bhazs[, chaz1 := cumsum(dhaz1*exp1), by = "chemo"]
 bhazs[, chaz2 := cumsum(dhaz2*exp2), by = "chemo"] 
@@ -361,12 +361,12 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) + geom_point(aes(x=l
 
 #+END_SRC
 
-#+RESULTS[(2022-07-15 11:47:31) 8e21e0b6503ea8d3c2632240a6f82c87c0844bf6]:
+#+RESULTS[(2022-07-15 12:51:10) 7ece1a38be8938a3b990ea0311dfeaf3246a7789]:
 [[file:./figures/fig-log-hazards-log-time-hazard1-2changepoints.png]]
 
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-hazards-time-hazard1-2changepoints.png :exports none :session *R* :cache yes :width 500 :height 500
-bhazs.long[time<=exp(log.t1.1) & chemo=="chemo = 1" & status=="status = 1",
+bhazs.long[time<=exp(log.t1.1) & chemo=="chemo = 1" & status=="status = 1", 
            fit.chaz:=exp(gamma.status1.t1.1*log(lambda.status1.t1.1) + gamma.status1.t1.1*log(time))]
 bhazs.long[time<=exp(log.t1.1) & chemo=="chemo = 0" & status=="status = 1",
            fit.chaz:=exp(gamma.status1.t1.0*log(lambda.status1.t1.0) + gamma.status1.t1.0*log(time))]
@@ -390,14 +390,14 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) +
   ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:") 
 #+END_SRC
 
-#+RESULTS[(2022-07-15 11:47:38) 7dd630f64be99c00b279e6a034dee74aa6037722]:
+#+RESULTS[(2022-07-15 12:51:14) 29c67b376e328ed4b0c368f1d2dc553e3f3869c4]:
 [[file:./figures/fig-hazards-time-hazard1-2changepoints.png]]
 
 
 *** Cause one events (three changepoints)
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time-hazard1-3changepoints.png :exports none :session *R* :cache yes :width 500 :height 500
-bhazs <- bhaz.cox[[1]]
+bhazs <- bhaz.cox[[1]] 
 
 bhazs[, chaz1 := cumsum(dhaz1*exp1), by = "chemo"]
 bhazs[, chaz2 := cumsum(dhaz2*exp2), by = "chemo"] 
@@ -506,12 +506,12 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) + geom_point(aes(x=l
 
 #+END_SRC
 
-#+RESULTS[(2022-07-15 11:47:41) 94524ce47dbdf187cb02af5cc3e02fb75724389d]:
+#+RESULTS[(2022-07-15 12:51:18) 7d66064bb59c925680e90afc949d65f1957d0d84]:
 [[file:./figures/fig-log-hazards-log-time-hazard1-3changepoints.png]]
 
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-hazards-time-hazard1-3changepoints.png :exports none :session *R* :cache yes :width 500 :height 500
-bhazs.long[time<=exp(log.t1.1) & chemo=="chemo = 1" & status=="status = 1", 
+bhazs.long[time<=exp(log.t1.1) & chemo=="chemo = 1" & status=="status = 1",  
            fit.chaz:=exp(gamma.status1.t1.1*log(lambda.status1.t1.1) + gamma.status1.t1.1*log(time))]
 bhazs.long[time<=exp(log.t1.1) & chemo=="chemo = 0" & status=="status = 1",
            fit.chaz:=exp(gamma.status1.t1.0*log(lambda.status1.t1.0) + gamma.status1.t1.0*log(time))]
@@ -539,7 +539,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) +
   ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:") 
 #+END_SRC
 
-#+RESULTS[(2022-07-15 11:47:48) 4312864e7adcb4d9ca272a7c3865a4081e212d0d]:
+#+RESULTS[(2022-07-15 12:51:21) af3b7ffe7d1f3e4938fcd650508fcc063cc593b2]:
 [[file:./figures/fig-hazards-time-hazard1-3changepoints.png]]
 
 
@@ -547,7 +547,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) +
 
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time-hazard2-changepoint.png :exports none :session *R* :cache yes :width 500 :height 500
-log.t0.2 <- 0  
+log.t0.2 <- 0   
 log.t1.2 <- 1.5 
 log.t2.2 <- 3  
 
@@ -602,13 +602,13 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 2"]) + geom_point(aes(x=l
   ylab("log(chaz)") + ggtitle("Fitting two straight lines:")
 #+END_SRC
 
-#+RESULTS[(2022-07-15 11:47:52) 7485046dc83c0a903c19ced38bfc8e383dfe9e14]:
+#+RESULTS[(2022-07-15 12:51:25) df69b93cd352e438786a8518e9d379d03e4c6d26]:
 [[file:./figures/fig-log-hazards-log-time-hazard2-changepoint.png]]
 
 
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-hazards-time-hazard2-changepoint.png :exports none :session *R* :cache yes :width 500 :height 500
-bhazs.long[time<=exp(log.t1.2) & chemo=="chemo = 1" & status=="status = 2",
+bhazs.long[time<=exp(log.t1.2) & chemo=="chemo = 1" & status=="status = 2", 
            fit.chaz:=exp(gamma.status2.t1.1*log(lambda.status2.t1.1) + gamma.status2.t1.1*log(time))]
 bhazs.long[time<=exp(log.t1.2) & chemo=="chemo = 0" & status=="status = 2",
            fit.chaz:=exp(gamma.status2.t1.0*log(lambda.status2.t1.0) + gamma.status2.t1.0*log(time))]
@@ -628,14 +628,14 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 2"]) +
   ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:")
 #+END_SRC
 
-#+RESULTS[(2022-07-15 11:47:57) b9809357d56ee5cf6d9873d6bf837257d6cd04ad]:
+#+RESULTS[(2022-07-15 12:51:28) 537dd63af617e7bedaa91e2714aed2ffbad35121]:
 [[file:./figures/fig-hazards-time-hazard2-changepoint.png]]
 
 *** Cause two events (add changepoint)
 
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time-hazard2-2changepoints.png :exports none :session *R* :cache yes :width 500 :height 500
-bhazs <- bhaz.cox[[1]]
+bhazs <- bhaz.cox[[1]] 
  
 bhazs[, chaz1 := cumsum(dhaz1*exp1), by = "chemo"]
 bhazs[, chaz2 := cumsum(dhaz2*exp2), by = "chemo"]
@@ -722,13 +722,13 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 2"]) + geom_point(aes(x=l
   ylab("log(chaz)") + ggtitle("Fitting three straight lines:")
 #+END_SRC
 
-#+RESULTS[(2022-07-15 11:48:00) 7a1e43b06e4e0822d80fc7c7ef52b625e6e8590e]:
+#+RESULTS[(2022-07-15 12:51:32) 3df3fc39b896243a992cd5d1c9338316c4d59f63]:
 [[file:./figures/fig-log-hazards-log-time-hazard2-2changepoints.png]]
 
 
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-hazards-time-hazard2-2changepoints.png :exports none :session *R* :cache yes :width 500 :height 500
-bhazs.long[time<=exp(log.t1.2) & chemo=="chemo = 1" & status=="status = 2",
+bhazs.long[time<=exp(log.t1.2) & chemo=="chemo = 1" & status=="status = 2", 
            fit.chaz:=exp(gamma.status2.t1.1*log(lambda.status2.t1.1) + gamma.status2.t1.1*log(time))]
 bhazs.long[time<=exp(log.t1.2) & chemo=="chemo = 0" & status=="status = 2",
            fit.chaz:=exp(gamma.status2.t1.0*log(lambda.status2.t1.0) + gamma.status2.t1.0*log(time))]
@@ -752,14 +752,14 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 2"]) +
   ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:")
 #+END_SRC
 
-#+RESULTS[(2022-07-15 11:48:07) eb281745dd17b27504316d63075dfe4a56dd346e]:
+#+RESULTS[(2022-07-15 12:51:35) c928d697d7fcb731858c573edd406dd019e17955]:
 [[file:./figures/fig-hazards-time-hazard2-2changepoints.png]]
 
 
 *** Censoring events (covariate dependent)
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time-hazard0-changepoint.png :exports none :session *R* :cache yes :width 500 :height 500
-log.t0.0 <- 1.2
+log.t0.0 <- 1.2 
 log.t1.0 <- 1.9   
 log.t2.0 <- 3.2 
 
@@ -814,13 +814,13 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 0"]) + geom_point(aes(x=l
   ylab("log(chaz)") + ggtitle("Fitting two straight lines:")
 #+END_SRC
 
-#+RESULTS[(2022-07-15 11:48:11) f01b50d7d008c4ea70f088cff739a7700398aad9]:
+#+RESULTS[(2022-07-15 12:51:38) 09cc9b94cfc17feb8051196a267f175da823dff3]:
 [[file:./figures/fig-log-hazards-log-time-hazard0-changepoint.png]]
 
 
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-hazards-time-hazard0-changepoint.png :exports none :session *R* :cache yes :width 500 :height 500
-bhazs.long[time<=exp(log.t1.0) & chemo=="chemo = 1" & status=="status = 0", 
+bhazs.long[time<=exp(log.t1.0) & chemo=="chemo = 1" & status=="status = 0",  
            fit.chaz:=exp(gamma.status0.t1.1*log(lambda.status0.t1.1) + gamma.status0.t1.1*log(time))]
 bhazs.long[time<=exp(log.t1.0) & chemo=="chemo = 0" & status=="status = 0",
            fit.chaz:=exp(gamma.status0.t1.0*log(lambda.status0.t1.0) + gamma.status0.t1.0*log(time))]
@@ -840,7 +840,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 0"]) +
   ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:")
 #+END_SRC
 
-#+RESULTS[(2022-07-15 11:48:16) cea918206b70dffc642b433faa9dba386f3a6821]:
+#+RESULTS[(2022-07-15 12:51:41) 7681ef6483faebed766cb6ef24f47fb17aa77e83]:
 [[file:./figures/fig-hazards-time-hazard0-changepoint.png]]
 
 
@@ -849,7 +849,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 0"]) +
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time-hazard0-2changepoints.png :exports none :session *R* :cache yes :width 500 :height 500
 bhazs <- bhaz.cox[[1]]
- 
+  
 bhazs[, chaz1 := cumsum(dhaz1*exp1), by = "chemo"]
 bhazs[, chaz2 := cumsum(dhaz2*exp2), by = "chemo"]
 bhazs[, chaz0 := cumsum(dhaz0*exp0), by = "chemo"]
@@ -936,12 +936,12 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 0"]) + geom_point(aes(x=l
   ylab("log(chaz)") + ggtitle("Fitting three straight lines:")
 #+END_SRC
 
-#+RESULTS[(2022-07-15 11:48:19) b45ff69eba968bf86d11e40ec67a8cd0e9205cfd]:
+#+RESULTS[(2022-07-15 12:51:43) d9dcedd6136d6f49ddc9cdcb688481ddecb5e16d]:
 [[file:./figures/fig-log-hazards-log-time-hazard0-2changepoints.png]]
 
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-hazards-time-hazard0-2changepoints.png :exports none :session *R* :cache yes :width 500 :height 500
-bhazs.long[time<=exp(log.t1.0) & chemo=="chemo = 1" & status=="status = 0", 
+bhazs.long[time<=exp(log.t1.0) & chemo=="chemo = 1" & status=="status = 0",  
                               fit.chaz:=exp(gamma.status0.t1.1*log(lambda.status0.t1.1) + gamma.status0.t1.1*log(time))]
 bhazs.long[time<=exp(log.t1.0) & chemo=="chemo = 0" & status=="status = 0",
                               fit.chaz:=exp(gamma.status0.t1.0*log(lambda.status0.t1.0) + gamma.status0.t1.0*log(time))]
@@ -965,7 +965,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 0"]) +
   ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:")
 #+END_SRC
 
-#+RESULTS[(2022-07-15 11:48:28) f78f07bf4e9afe64b97f9be2aaf6ecb244308863]:
+#+RESULTS[(2022-07-15 12:51:46) e39eb406273dec188b5613cf8358a93505118352]:
 [[file:./figures/fig-hazards-time-hazard0-2changepoints.png]]
 
 
@@ -973,7 +973,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 0"]) +
 *** Censoring events (independent)
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time-hazard0-independent.png :exports none :session *R* :cache yes :width 500 :height 500
-bhazs.uninformative.cens <- bhaz.uninformative.cens[[1]]
+bhazs.uninformative.cens <- bhaz.uninformative.cens[[1]] 
 bhazs.uninformative.cens[, chaz0 := cumsum(dhaz0*exp0), by = "chemo"] 
  
 bhazs.uninformative.cens.long <- melt(bhazs.uninformative.cens, id.vars=c("chemo", "time")) 
@@ -1037,12 +1037,12 @@ ggplot(bhazs.uninformative.cens.long[!is.na(fit.chaz) & status=="status = 0"]) +
   ylab("log(chaz)") + ggtitle("Fitting a single straight line:")
 #+END_SRC
 
-#+RESULTS[(2022-07-15 11:48:30) d6b07e3ef39b2ebb42beb11507ef263d4445f296]:
+#+RESULTS[(2022-07-15 12:51:49) 67e8e96db763432266bd6847fe59c9966620b18f]:
 [[file:./figures/fig-log-hazards-log-time-hazard0-independent.png]]
 
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-hazards-time-hazard0-independent.png :exports none :session *R* :cache yes :width 500 :height 500
-bhazs.uninformative.cens.long[chemo=="chemo = 1" & status=="status = 0", 
+bhazs.uninformative.cens.long[chemo=="chemo = 1" & status=="status = 0",  
            fit.chaz:=exp(gamma.status0.independent.1*log(lambda.status0.independent.1) + gamma.status0.independent.1*log(time))]
 bhazs.uninformative.cens.long[chemo=="chemo = 0" & status=="status = 0",
            fit.chaz:=exp(gamma.status0.independent.0*log(lambda.status0.independent.0) + gamma.status0.independent.0*log(time))]
@@ -1058,14 +1058,14 @@ ggplot(bhazs.uninformative.cens.long[!is.na(fit.chaz) & status=="status = 0"]) +
   ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:")
 #+END_SRC
 
-#+RESULTS[(2022-07-15 11:48:36) 9bdf484e8771d9c40c25f812b2249f234fa848cb]:
+#+RESULTS[(2022-07-15 12:51:51) c8d326d21976b42a0616c206059f852d6fdef11c]:
 [[file:./figures/fig-hazards-time-hazard0-independent.png]]
 
 
 *** Censoring events (independent, but with changepoint)
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time-hazard0-independent-changepoint.png :exports none :session *R* :cache yes :width 500 :height 500
-bhazs.uninformative.cens <- bhaz.uninformative.cens[[1]]
+bhazs.uninformative.cens <- bhaz.uninformative.cens[[1]] 
 bhazs.uninformative.cens[, chaz0 := cumsum(dhaz0*exp0), by = "chemo"] 
 
 bhazs.uninformative.cens.long <- melt(bhazs.uninformative.cens, id.vars=c("chemo", "time")) 
@@ -1128,12 +1128,12 @@ ggplot(bhazs.uninformative.cens.long[!is.na(fit.chaz) & status=="status = 0"]) +
   ylab("log(chaz)") + ggtitle("Fitting two straight lines:")
 #+END_SRC
 
-#+RESULTS[(2022-07-15 11:48:39) 7d482a58d4dce11c4d1df382eafd4eb1857e794a]:
+#+RESULTS[(2022-07-15 12:51:54) dfe818f54c420166bdd3607bf78231681d0c76b8]:
 [[file:./figures/fig-log-hazards-log-time-hazard0-independent-changepoint.png]]
 
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-hazards-time-hazard0-independent-changepoint.png :exports none :session *R* :cache yes :width 500 :height 500
-bhazs.uninformative.cens.long[time<=exp(log.t1.0) & chemo=="chemo = 1" & status=="status = 0",  
+bhazs.uninformative.cens.long[time<=exp(log.t1.0) & chemo=="chemo = 1" & status=="status = 0",   
            fit.chaz:=exp(gamma.status0.independent.t1.1*log(lambda.status0.independent.t1.1) + gamma.status0.independent.t1.1*log(time))]
 bhazs.uninformative.cens.long[time<=exp(log.t1.0) & chemo=="chemo = 0" & status=="status = 0",
            fit.chaz:=exp(gamma.status0.independent.t1.0*log(lambda.status0.independent.t1.0) + gamma.status0.independent.t1.0*log(time))]
@@ -1153,7 +1153,7 @@ ggplot(bhazs.uninformative.cens.long[!is.na(fit.chaz) & status=="status = 0"]) +
   ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:")
 #+END_SRC
 
-#+RESULTS[(2022-07-15 11:48:44) d97afaff699b351294ae41f86004749c52b30c1d]:
+#+RESULTS[(2022-07-15 12:51:58) a37e3dd80a0f507786e9adbad0c4c2ef7bd2c921]:
 [[file:./figures/fig-hazards-time-hazard0-independent-changepoint.png]]
 
 
@@ -1161,7 +1161,7 @@ ggplot(bhazs.uninformative.cens.long[!is.na(fit.chaz) & status=="status = 0"]) +
 *** Censoring events (independent, but with two changepoints)
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time-hazard0-independent-2changepoints.png :exports none :session *R* :cache yes :width 500 :height 500
-bhazs.uninformative.cens <- bhaz.uninformative.cens[[1]]
+bhazs.uninformative.cens <- bhaz.uninformative.cens[[1]] 
 bhazs.uninformative.cens[, chaz0 := cumsum(dhaz0*exp0), by = "chemo"] 
 
 bhazs.uninformative.cens.long <- melt(bhazs.uninformative.cens, id.vars=c("chemo", "time")) 
@@ -1242,11 +1242,11 @@ ggplot(bhazs.uninformative.cens.long[!is.na(fit.chaz) & status=="status = 0"]) +
   theme(axis.text=element_text(size=12),axis.title=element_text(size=18), legend.position="none",
         strip.text = element_text(size=16),
         plot.title = element_text(size = 16, hjust = -0.15),
-        strip.background = element_blank())+ 
+        strip.background = element_blank())+  
   ylab("log(chaz)") + ggtitle("Fitting three straight lines:")
 #+END_SRC
 
-#+RESULTS[(2022-07-14 11:27:01) 59180bda29d147d84b0e7df6040118b26fd4f54d]:
+#+RESULTS[(2022-07-15 12:52:01) 80bbb0d88f7fa4c58bf29ce15b9afbd5a962715d]:
 [[file:./figures/fig-log-hazards-log-time-hazard0-independent-2changepoints.png]]
 
 
@@ -1269,13 +1269,13 @@ ggplot(bhazs.uninformative.cens.long[!is.na(fit.chaz) & status=="status = 0"]) +
   geom_line(aes(time, y=fit.chaz), col="red")+
   facet_grid(chemo~status, scales="free")+theme_bw()+
   theme(axis.text=element_text(size=12),axis.title=element_text(size=18),legend.position="none",
-        strip.text = element_text(size=16),
+        strip.text = element_text(size=16), 
         plot.title = element_text(size = 16, hjust = -0.1), 
         strip.background = element_blank())+
   ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:") 
 #+END_SRC
 
-#+RESULTS[(2022-07-15 12:03:41) 6297f4ae03067e46f4160d0f7d10c370d6c02236]:
+#+RESULTS[(2022-07-15 12:52:11) 134d66849dd8115caef571094c64fd69b4561e2d]:
 [[file:./figures/fig-hazards-time-hazard0-independent-2changepoints.png]]
 
 
