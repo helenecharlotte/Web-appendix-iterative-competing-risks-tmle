@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (12:12) 
 ## Version: 
-## Last-Updated: Jul 14 2022 (12:13) 
+## Last-Updated: Jul 18 2022 (09:35) 
 ##           By: Helene
-##     Update #: 4
+##     Update #: 13
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,6 +20,7 @@ run.follic <- function(M = 1, no_cores = 1, print.m = TRUE, seed.init = 100, no.
                        get.truth = FALSE, parameter = "ate",
                        fit.initial = "cox", tau = 10,
                        observed.covars = TRUE,
+                       observed.treatment = TRUE,
                        hal.sl = FALSE, browse.hal = FALSE,
                        sim.sample = nrow(follic),
                        informative.censoring = TRUE,
@@ -103,6 +104,7 @@ run.follic <- function(M = 1, no_cores = 1, print.m = TRUE, seed.init = 100, no.
                        sim.follic <- simulate.follic.3(seed = m+seed.init,
                                                        sim.sample = sim.sample,
                                                        observed.covars = observed.covars,
+                                                       observed.treatment = observed.treatment,
                                                        informative.censoring = informative.censoring)
                      
                        out <- list("est"=contmle(sim.follic, estimation=list("outcome"=list(fit=fit.initial,
@@ -147,6 +149,7 @@ run.follic <- function(M = 1, no_cores = 1, print.m = TRUE, seed.init = 100, no.
                             paste0("-tau", tau),
                             ifelse(informative.censoring, "", "-independentcens"),
                             ifelse(observed.covars, "", "-simulatedcovars"),
+                            ifelse(observed.treatment, "", "-simulatedtreatment"),
                             ifelse(sim.sample == nrow(follic), "", paste0("-n", sim.sample)),
                             "-M", M, ".rds"))
     } else {

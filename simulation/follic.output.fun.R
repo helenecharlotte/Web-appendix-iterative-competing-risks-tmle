@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (12:51) 
 ## Version: 
-## Last-Updated: Jul 18 2022 (09:06) 
+## Last-Updated: Jul 18 2022 (09:27) 
 ##           By: Helene
-##     Update #: 15
+##     Update #: 17
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -28,6 +28,7 @@ follic.output.fun <- function(M = 500,
                               informative.censoring = FALSE,
                               tau = 10,
                               observed.covars = FALSE,
+                              observed.treatment = TRUE,
                               sim.sample = 1000
                               ) {
 
@@ -39,6 +40,7 @@ follic.output.fun <- function(M = 500,
                  paste0("-tau", tau),
                  ifelse(informative.censoring, "", "-independentcens"),
                  ifelse(observed.covars, "", "-simulatedcovars"),
+                 ifelse(observed.treatment, "", "-simulatedtreatment"),
                  ifelse(sim.sample == nrow(follic), "", paste0("-n", sim.sample)),
                  "-M", M, ".rds"))
 
@@ -50,6 +52,7 @@ follic.output.fun <- function(M = 500,
                                                    paste0("-tau", tau),
                                                    ifelse(informative.censoring, "", "-independentcens"),
                                                    ifelse(observed.covars, "", "-simulatedcovars"),
+                                                   ifelse(observed.treatment, "", "-simulatedtreatment"),
                                                    ifelse(sim.sample == nrow(follic), "", paste0("-n", sim.sample)),
                                                    "-M", M, ".rds"))$mtime))
 
@@ -58,6 +61,7 @@ follic.output.fun <- function(M = 500,
     print(paste0("# results for initial fit = * ", fit.initial, " * "))
     print(paste0("# ", ifelse(informative.censoring, "informative censoring", "independent censoring")))
     print(paste0("# ", ifelse(observed.covars, "observed covariates", "simulated covariates")))
+    print(paste0("# ", ifelse(observed.treatment, "observed treatment", "simulated treatment")))
     print("#----------------------------------------------------------------------")
 
     print(paste0("true.psi = ", true.psi <- readRDS(file=paste0("./simulation/output/",
@@ -65,6 +69,7 @@ follic.output.fun <- function(M = 500,
                                                                 ifelse(parameter == "ate", parameter, paste0("psi", parameter)),
                                                                 paste0("-seed.init", seed.init),
                                                                 ifelse(observed.covars, "", "-simulatedcovars"),
+                                                                ifelse(observed.treatment, "", "-simulatedtreatment"),
                                                                 paste0("-tau", tau),
                                                                 ".rds"))))
 
@@ -76,6 +81,7 @@ follic.output.fun <- function(M = 500,
                                paste0("-tau", tau),
                                ifelse(informative.censoring, "", "-independentcens"),
                                ifelse(observed.covars, "", "-simulatedcovars"),
+                               ifelse(observed.treatment, "", "-simulatedtreatment"),
                                ifelse(sim.sample == nrow(follic), "", paste0("-n", sim.sample)),
                                "-M", M, ".rds"))
 
