@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:53) 
 ## Version: 
-## Last-Updated: Jul 16 2022 (11:51) 
+## Last-Updated: Jul 18 2022 (09:09) 
 ##           By: Helene
-##     Update #: 107
+##     Update #: 150
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -117,14 +117,46 @@ run.follic(M = 500, verbose = FALSE, fit.initial = "hal", no.cores = 1,
 #-- here
 run.follic(M = 500, verbose = FALSE, fit.initial = "hal", no.cores = 6,
            observed.covars = FALSE, informative.censoring = FALSE, sim.sample = 1000)
+run.follic(M = 500, verbose = FALSE, fit.initial = "hal", no.cores = 6,
+           observed.covars = FALSE, informative.censoring = TRUE, sim.sample = 1000)
+run.follic(M = 500, verbose = FALSE, fit.initial = "hal", no.cores = 6,
+           observed.covars = TRUE, informative.censoring = TRUE)
+run.follic(M = 500, verbose = FALSE, fit.initial = "hal", no.cores = 6,
+           observed.covars = TRUE, informative.censoring = FALSE)
+
+run.follic(M = 500, verbose = FALSE, fit.initial = "rf", no.cores = 1,
+           observed.covars = FALSE, informative.censoring = TRUE, sim.sample = 1000)
+run.follic(M = 500, verbose = FALSE, fit.initial = "rf", no.cores = 1,
+           observed.covars = FALSE, informative.censoring = FALSE, sim.sample = 1000)
+
+#-- here2
+run.follic(M = 500, verbose = FALSE, fit.initial = "hal", no.cores = 6,
+           observed.covars = TRUE, informative.censoring = TRUE, sim.sample = 1000)
+run.follic(M = 500, verbose = FALSE, fit.initial = "hal", no.cores = 6,
+           observed.covars = TRUE, informative.censoring = FALSE, sim.sample = 1000)
+run.follic(M = 500, verbose = FALSE, fit.initial = "cox", no.cores = 6,
+           observed.covars = TRUE, informative.censoring = FALSE, sim.sample = 1000)
+#-- here2.5
+run.follic(M = 500, verbose = FALSE, fit.initial = "rf", no.cores = 1,
+           observed.covars = TRUE, informative.censoring = TRUE, sim.sample = 1000)
+run.follic(M = 500, verbose = FALSE, fit.initial = "rf", no.cores = 1,
+           observed.covars = TRUE, informative.censoring = FALSE, sim.sample = 1000)
+
+
+run.follic(M = 500, verbose = FALSE, fit.initial = "rf", no.cores = 1,
+           observed.covars = TRUE, informative.censoring = FALSE, sim.sample = 1000)
 run.follic(M = 500, verbose = FALSE, fit.initial = "rf", no.cores = 1,
            observed.covars = FALSE, informative.censoring = FALSE, sim.sample = 1000)
 
 
+run.follic(M = 1, verbose = FALSE, fit.initial = "rf", no.cores = 1,
+           observed.covars = FALSE, informative.censoring = FALSE, sim.sample = 1000)
+
 run.follic(M = 500, verbose = TRUE, fit.initial = "cox", no.cores = no.cores,
            observed.covars = FALSE, informative.censoring = TRUE, sim.sample = 1000)
 
-run.follic(M = 5, verbose = FALSE, fit.initial = "hal", no.cores = 1,
+#-- here3
+run.follic(M = 6, verbose = TRUE, fit.initial = "hal", no.cores = 6,
            hal.sl = TRUE,
            observed.covars = FALSE, informative.censoring = TRUE, sim.sample = 1000)
 
@@ -144,6 +176,18 @@ cox.output <- follic.output.fun(M = 500,
 
 hal.output <- follic.output.fun(M = 500,
                                fit.initial = "hal",
+                               informative.censoring = FALSE,
+                               observed.covars = FALSE,
+                               sim.sample = 1000)
+
+rf.output <- follic.output.fun(M = 500,
+                               fit.initial = "rf",
+                               informative.censoring = FALSE,
+                               observed.covars = FALSE,
+                               sim.sample = 1000)
+
+hal.output <- follic.output.fun(M = 500,
+                               fit.initial = "hal",
                                informative.censoring = TRUE,
                                observed.covars = FALSE,
                                sim.sample = 1000)
@@ -157,7 +201,31 @@ rf.output <- follic.output.fun(M = 500,
 hal.output <- follic.output.fun(M = 500,
                                fit.initial = "hal",
                                informative.censoring = TRUE,
-                               observed.covars = FALSE,
+                               observed.covars = TRUE,
+                               sim.sample = nrow(follic))
+
+hal.output <- follic.output.fun(M = 500,
+                               fit.initial = "hal",
+                               informative.censoring = FALSE,
+                               observed.covars = TRUE,
+                               sim.sample = nrow(follic))
+
+hal.output <- follic.output.fun(M = 500,
+                               fit.initial = "hal",
+                               informative.censoring = TRUE,
+                               observed.covars = TRUE,
+                               sim.sample = 1000)
+
+hal.output <- follic.output.fun(M = 500,
+                               fit.initial = "hal",
+                               informative.censoring = FALSE,
+                               observed.covars = TRUE,
+                               sim.sample = 1000)
+
+cox.output <- follic.output.fun(M = 500,
+                               fit.initial = "cox",
+                               informative.censoring = FALSE,
+                               observed.covars = TRUE,
                                sim.sample = 1000)
 
 cox.output <- follic.output.fun(M = 500,
@@ -165,6 +233,73 @@ cox.output <- follic.output.fun(M = 500,
                                informative.censoring = TRUE,
                                observed.covars = FALSE,
                                sim.sample = 1000)
+
+#-- (SIMULATED covariates)
+
+rf.output <- follic.output.fun(M = 500,
+                               fit.initial = "rf",
+                               informative.censoring = TRUE,
+                               observed.covars = FALSE,
+                               sim.sample = 1000)
+
+rf.output <- follic.output.fun(M = 500,
+                               fit.initial = "rf",
+                               informative.censoring = FALSE,
+                               observed.covars = FALSE,
+                               sim.sample = 1000)
+
+hal.output <- follic.output.fun(M = 500,
+                                fit.initial = "hal",
+                                informative.censoring = TRUE,
+                                observed.covars = FALSE,
+                                sim.sample = 1000)
+
+hal.output <- follic.output.fun(M = 500,
+                                fit.initial = "hal",
+                                informative.censoring = FALSE,
+                                observed.covars = FALSE,
+                                sim.sample = 1000)
+
+
+
+
+#-- HERE? (OBSERVED covariates)
+
+rf.output <- follic.output.fun(M = 500,
+                               fit.initial = "rf",
+                               informative.censoring = TRUE,
+                               observed.covars = TRUE,
+                               sim.sample = 1000)
+
+rf.output <- follic.output.fun(M = 500,
+                               fit.initial = "rf",
+                               informative.censoring = FALSE,
+                               observed.covars = TRUE,
+                               sim.sample = 1000)
+
+hal.output <- follic.output.fun(M = 500,
+                                fit.initial = "hal",
+                                informative.censoring = TRUE,
+                                observed.covars = TRUE,
+                                sim.sample = 1000)
+
+hal.output <- follic.output.fun(M = 500,
+                                fit.initial = "hal",
+                                informative.censoring = FALSE,
+                                observed.covars = TRUE,
+                                sim.sample = 1000)
+
+cox.output <- follic.output.fun(M = 500,
+                                fit.initial = "cox",
+                                informative.censoring = TRUE,
+                                observed.covars = TRUE,
+                                sim.sample = 1000)
+
+cox.output <- follic.output.fun(M = 500,
+                                fit.initial = "cox",
+                                informative.censoring = FALSE,
+                                observed.covars = TRUE,
+                                sim.sample = 1000)
 
 ######################################################################
 
@@ -200,7 +335,8 @@ if (FALSE) {
 
     #--- test with independent censoring:
 
-    seed <- sample(10000, 1) 
+    seed <- sample(10000, 1)
+    #seed <- 4660
     sim.follic.3 <- simulate.follic.3(observed.covars = TRUE,
                                       sim.sample = nrow(follic),
                                       counterfactual = NULL,

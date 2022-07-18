@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (12:51) 
 ## Version: 
-## Last-Updated: Jul 15 2022 (12:44) 
+## Last-Updated: Jul 18 2022 (09:06) 
 ##           By: Helene
-##     Update #: 10
+##     Update #: 15
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -41,6 +41,18 @@ follic.output.fun <- function(M = 500,
                  ifelse(observed.covars, "", "-simulatedcovars"),
                  ifelse(sim.sample == nrow(follic), "", paste0("-n", sim.sample)),
                  "-M", M, ".rds"))
+
+    print(paste0("modified at: ", file.info(paste0("./simulation/output/",
+                                                   "outlist-follic-contmle",
+                                                   paste0("-", parameter),
+                                                   paste0("-seed.init", seed.init),
+                                                   paste0("-fit.initial", fit.initial),
+                                                   paste0("-tau", tau),
+                                                   ifelse(informative.censoring, "", "-independentcens"),
+                                                   ifelse(observed.covars, "", "-simulatedcovars"),
+                                                   ifelse(sim.sample == nrow(follic), "", paste0("-n", sim.sample)),
+                                                   "-M", M, ".rds"))$mtime))
+
 
     print("#----------------------------------------------------------------------")
     print(paste0("# results for initial fit = * ", fit.initial, " * "))
@@ -109,7 +121,17 @@ follic.output.fun <- function(M = 500,
     print(paste0("init mc sd = ", sd(init.est, na.rm = TRUE)))
     print(paste0("km mc sd   = ", sd(km.est, na.rm = TRUE)))
 
+    km.se <- unlist(lapply(out, function(out1) {
+        if (is.list(out1[[1]])) {
+            return(out1[[1]]$km$F1["km.se",][[1]])
+        } else return(NA)
+    }))
+
     print(paste0("mse (tmle/km) = ", mse(tmle.est)/mse(km.est)))
+
+    #-- km coverage
+    print(paste0("km coverage = ", coverage <- mean(km.est - 1.96*km.se <= true.psi &
+                                                    true.psi <= km.est + 1.96*km.se, na.rm = TRUE)))
 
     #-- oracle coverage
     print(paste0("oracle coverage = ", mean(tmle.est - 1.96*tmle.se <=  mean(tmle.est, na.rm = TRUE) &

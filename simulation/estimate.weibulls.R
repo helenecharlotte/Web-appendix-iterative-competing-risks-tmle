@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:51) 
 ## Version: 
-## Last-Updated: Jul 16 2022 (05:53) 
+## Last-Updated: Jul 18 2022 (09:22) 
 ##           By: Helene
-##     Update #: 73
+##     Update #: 81
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -18,27 +18,27 @@
 ######################################################################
 
 #--- try see what super learner would pick
-if (FALSE) bhaz.sl <- contmle(follic, estimation=list("outcome"=list(fit="sl",
-                                                                     model=Surv(time, status==1)~chemo+stage+hgb+age,
-                                                                     lambda.cvs=seq(0.008, 0.02, length=10)),
-                                                      "cens"=list(fit="sl",
-                                                                  model=Surv(time, status==0)~chemo+stage+hgb+age),
-                                                      "cr2"=list(fit="sl",
-                                                                 model=Surv(time, status==2)~chemo+stage+hgb+age)
-                                                      ),
-                              treat.model=chemo~stage+hgb+age,
-                              treat.effect="ate",
-                              no.small.steps=500,
-                              sl.models=list(mod1=list(Surv(time, status==1)~chemo+stage+hgb+age, t0 = (1:50)/2000)), 
-                              output.km=TRUE,
-                              output.bhaz=TRUE, 
-                              V=3, lambda.cvs=seq(0.1, 0.03, length=10), maxit=1e5, penalize.time=FALSE,
-                              verbose=TRUE,
-                              iterative=TRUE,
-                              tau=20, target=1)
+bhaz.cox <- contmle(follic, estimation=list("outcome"=list(fit="sl",
+                                                           model=Surv(time, status==1)~chemo+stage+hgb+age,
+                                                           lambda.cvs=seq(0.008, 0.02, length=10)),
+                                            "cens"=list(fit="sl",
+                                                        model=Surv(time, status==0)~chemo+stage+hgb+age),
+                                            "cr2"=list(fit="sl",
+                                                       model=Surv(time, status==2)~chemo+stage+hgb+age)
+                                            ),
+                    treat.model=chemo~stage+hgb+age,
+                    treat.effect="ate",
+                    no.small.steps=500,
+                    sl.models=list(mod1=list(Surv(time, status==1)~chemo+stage+hgb+age, t0 = (1:50)/2000)), 
+                    output.km=TRUE,
+                    output.bhaz=TRUE, 
+                    V=3, lambda.cvs=seq(0.1, 0.03, length=10), maxit=1e5, penalize.time=FALSE,
+                    verbose=TRUE,
+                    iterative=TRUE,
+                    tau=20, target=1)
 
 #--- informative censoring
-bhaz.cox <-
+if (FALSE) bhaz.cox <-
     contmle(follic, estimation=list("outcome"=list(fit="cox",
                                                    model=Surv(time, status==1)~chemo+stage+hgb+age1+age2+age3+age+age.squared,
                                                    changepoint = 0.1,
@@ -78,7 +78,6 @@ bhaz.uninformative.cens <-
                                      = (1:50)/2000)), output.km=TRUE, output.bhaz=TRUE, V=3,
             lambda.cvs=seq(0.1, 0.03, length=10), maxit=1e5, penalize.time=FALSE,
             verbose=TRUE, iterative=TRUE, tau=20, target=1)
-
 
 #######################################################################################
 
