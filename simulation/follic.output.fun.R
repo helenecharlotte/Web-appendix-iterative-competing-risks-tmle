@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (12:51) 
 ## Version: 
-## Last-Updated: Jul 18 2022 (09:27) 
+## Last-Updated: Jul 19 2022 (08:30) 
 ##           By: Helene
-##     Update #: 17
+##     Update #: 46
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -29,6 +29,7 @@ follic.output.fun <- function(M = 500,
                               tau = 10,
                               observed.covars = FALSE,
                               observed.treatment = TRUE,
+                              randomized.treatment = FALSE,
                               sim.sample = 1000
                               ) {
 
@@ -40,7 +41,9 @@ follic.output.fun <- function(M = 500,
                  paste0("-tau", tau),
                  ifelse(informative.censoring, "", "-independentcens"),
                  ifelse(observed.covars, "", "-simulatedcovars"),
-                 ifelse(observed.treatment, "", "-simulatedtreatment"),
+                 ifelse(observed.treatment, "",
+                 ifelse(randomized.treatment, "-simulatedrandomizedtreatment",
+                        "-simulatedtreatment")),
                  ifelse(sim.sample == nrow(follic), "", paste0("-n", sim.sample)),
                  "-M", M, ".rds"))
 
@@ -52,7 +55,9 @@ follic.output.fun <- function(M = 500,
                                                    paste0("-tau", tau),
                                                    ifelse(informative.censoring, "", "-independentcens"),
                                                    ifelse(observed.covars, "", "-simulatedcovars"),
-                                                   ifelse(observed.treatment, "", "-simulatedtreatment"),
+                                                   ifelse(observed.treatment, "",
+                                                   ifelse(randomized.treatment, "-simulatedrandomizedtreatment",
+                                                          "-simulatedtreatment")),
                                                    ifelse(sim.sample == nrow(follic), "", paste0("-n", sim.sample)),
                                                    "-M", M, ".rds"))$mtime))
 
@@ -61,7 +66,9 @@ follic.output.fun <- function(M = 500,
     print(paste0("# results for initial fit = * ", fit.initial, " * "))
     print(paste0("# ", ifelse(informative.censoring, "informative censoring", "independent censoring")))
     print(paste0("# ", ifelse(observed.covars, "observed covariates", "simulated covariates")))
-    print(paste0("# ", ifelse(observed.treatment, "observed treatment", "simulated treatment")))
+    print(paste0("# ", ifelse(observed.treatment, "observed treatment",
+                       ifelse(randomized.treatment, "simulated randomized treatment",
+                              "simulated treatment"))))
     print("#----------------------------------------------------------------------")
 
     print(paste0("true.psi = ", true.psi <- readRDS(file=paste0("./simulation/output/",
@@ -69,7 +76,6 @@ follic.output.fun <- function(M = 500,
                                                                 ifelse(parameter == "ate", parameter, paste0("psi", parameter)),
                                                                 paste0("-seed.init", seed.init),
                                                                 ifelse(observed.covars, "", "-simulatedcovars"),
-                                                                ifelse(observed.treatment, "", "-simulatedtreatment"),
                                                                 paste0("-tau", tau),
                                                                 ".rds"))))
 
@@ -81,7 +87,9 @@ follic.output.fun <- function(M = 500,
                                paste0("-tau", tau),
                                ifelse(informative.censoring, "", "-independentcens"),
                                ifelse(observed.covars, "", "-simulatedcovars"),
-                               ifelse(observed.treatment, "", "-simulatedtreatment"),
+                               ifelse(observed.treatment, "",
+                               ifelse(randomized.treatment, "-simulatedrandomizedtreatment",
+                                      "-simulatedtreatment")),
                                ifelse(sim.sample == nrow(follic), "", paste0("-n", sim.sample)),
                                "-M", M, ".rds"))
 
@@ -136,8 +144,8 @@ follic.output.fun <- function(M = 500,
     print(paste0("mse (tmle/km) = ", mse(tmle.est)/mse(km.est)))
 
     #-- km coverage
-    print(paste0("km coverage = ", coverage <- mean(km.est - 1.96*km.se <= true.psi &
-                                                    true.psi <= km.est + 1.96*km.se, na.rm = TRUE)))
+    print(paste0("km coverage = ", km.coverage <- mean(km.est - 1.96*km.se <= true.psi &
+                                                       true.psi <= km.est + 1.96*km.se, na.rm = TRUE)))
 
     #-- oracle coverage
     print(paste0("oracle coverage = ", mean(tmle.est - 1.96*tmle.se <=  mean(tmle.est, na.rm = TRUE) &
@@ -150,13 +158,43 @@ follic.output.fun <- function(M = 500,
     return(list(bias = list(tmle = mean(tmle.est-true.psi),
                             init = mean(init.est-true.psi),
                             km = mean(km.est-true.psi)),
+                se = list(tmle = mean(tmle.se),
+                          km = mean(km.se)),
                 sd = list(tmle = sd(tmle.est),
                           init = sd(init.est),
                           km = sd(km.est)),
                 mse = list(tmle = mse(tmle.est),
                            km = mse(km.est)),
-                cov = list(tmle = coverage)))
+                cov = list(tmle = coverage, km = km.coverage)))
 
+}
+
+follic.compare.results <- function(hal.output, rf.output, cox.output) {
+    if (rf.output$mse$km / hal.output$mse$km != 1) warning("check if hal and rf were run on same data")
+    return(cbind(hal = c(bias = hal.output$bias$tmle,
+                         cov = hal.output$cov$tmle,
+                         sd = hal.output$sd$tmle,
+                         se = hal.output$se$tmle, 
+                         mse = hal.output$mse$tmle,
+                         mse.km = hal.output$mse$tmle/hal.output$mse$km),
+                 rf = c(bias = rf.output$bias$tmle,
+                        cov = rf.output$cov$tmle,
+                        sd = rf.output$sd$tmle,
+                        se = rf.output$se$tmle, 
+                        mse = rf.output$mse$tmle,
+                        mse.km = rf.output$mse$tmle/rf.output$mse$km),
+                 km = c(bias = hal.output$bias$km,
+                        cov = hal.output$cov$km,
+                        sd = hal.output$sd$km,
+                        se = hal.output$se$km, 
+                        mse = hal.output$mse$km,
+                        mse.km = rf.output$mse$km / hal.output$mse$km),
+                 cox = c(bias = cox.output$bias$tmle,
+                         cov = cox.output$cov$tmle,
+                         sd = cox.output$sd$tmle,
+                         se = cox.output$se$tmle, 
+                         mse = cox.output$mse$tmle,
+                         mse.km = cox.output$mse$tmle/cox.output$mse$km)))
 }
 
 ######################################################################

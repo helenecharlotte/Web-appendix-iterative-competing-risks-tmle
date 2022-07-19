@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:52) 
 ## Version: 
-## Last-Updated: Jul 18 2022 (09:34) 
+## Last-Updated: Jul 18 2022 (11:25) 
 ##           By: Helene
-##     Update #: 31
+##     Update #: 33
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -152,6 +152,7 @@ simulate.change.weibull.3 <- function(seed = 100,
 
 simulate.follic.3 <- function(observed.covars = TRUE,
                               observed.treatment = TRUE,
+                              randomized.treatment = FALSE,
                               sim.sample = nrow(follic),
                               counterfactual = NULL,
                               seed = 100,
@@ -167,8 +168,12 @@ simulate.follic.3 <- function(observed.covars = TRUE,
             follic.sim <- follic
         }
         if (!observed.treatment) {
-            follic.sim[, chemo := sapply(predict(glm.chemo, type = "response", newdata = follic.sim),
-                                         function(p) rbinom(1,1,p))]
+            if (randomized.treatment) {
+                follic.sim[, chemo :=  rbinom(sim.sample, 1, p.chemo)]
+            } else {
+                follic.sim[, chemo := sapply(predict(glm.chemo, type = "response", newdata = follic.sim),
+                                             function(p) rbinom(1,1,p))]
+            }
         }
     } else {
         follic.sim <- data.table(stage = rbinom(sim.sample, 1, p.stage),
