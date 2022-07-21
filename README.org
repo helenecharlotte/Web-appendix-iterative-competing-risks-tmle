@@ -156,41 +156,42 @@ tmle.results[, mse.km := na.locf(mse.km), by = setting]
 
 
 #+BEGIN_SRC R :results file graphics :file ./simulation/output/simultation-results.png :exports none :session *R* :cache yes :height 500 :width 500
-grid.arrange(ggplot(tmle.results) + theme_bw() + 
-             geom_point(aes(x = initial, y = as.numeric(bias.tmle)), shape = 4) +
-             facet_grid(. ~ setting) +
-             geom_hline(yintercept = 0, linetype = "dashed", col = "red", alpha = 0.5) +
-             ylab("bias") + xlab("") +
-             theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
-                   strip.text = element_text(size = 8),
-                   strip.background = element_blank()),
-             ggplot(tmle.results) + theme_bw() +
-             geom_point(aes(x = initial, y = as.numeric(cov.tmle)), shape = 4) +
-             facet_grid(. ~ setting) +
-             geom_hline(yintercept = 0.95, linetype = "dashed", col = "red", alpha = 0.5) +
-             ylab("coverage") + xlab("") +
-             theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
-                   strip.text = element_text(size = 8),
-                   strip.background = element_blank()),
-             ggplot(tmle.results) + theme_bw() +
-             geom_point(aes(x = initial, y = as.numeric(sd.tmle)/as.numeric(se.tmle)), shape = 4) +
-             facet_grid(. ~ setting) +
-             geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
-             ylab("SD/SE") + xlab("") +
-             theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
-                   strip.text = element_text(size = 8),
-                   strip.background = element_blank()),
-             ggplot(tmle.results) + theme_bw() +
-             geom_point(aes(x = initial, y = as.numeric(mse.tmle)/as.numeric(mse.km)), shape = 4) +
-             facet_grid(. ~ setting) +
-             geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
-             ylab("MSE/MSE(KM)") + xlab("") +
-             theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
-                   strip.text = element_text(size = 8), 
-                   strip.background = element_blank()))
+  grid.arrange(ggplot(tmle.results) + theme_bw() + 
+	       geom_point(aes(x = initial, y = as.numeric(bias.tmle)), shape = 4) +
+	       facet_grid(. ~ setting) +
+	       geom_hline(yintercept = 0, linetype = "dashed", col = "red", alpha = 0.5) +
+	       ylab("bias") + xlab("") +
+	       theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+		     strip.text = element_text(size = 8),
+		     strip.background = element_blank()),
+	       ggplot(tmle.results) + theme_bw() +
+	       geom_point(aes(x = initial, y = as.numeric(cov.tmle)), shape = 4) +
+	       facet_grid(. ~ setting) +
+	       geom_hline(yintercept = 0.95, linetype = "dashed", col = "red", alpha = 0.5) +
+	       ylab("coverage") + xlab("") +
+	       theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+		     strip.text = element_text(size = 8),
+		     strip.background = element_blank()),
+	       ggplot(tmle.results) + theme_bw() +
+	       geom_point(aes(x = initial, y = as.numeric(sd.tmle)/as.numeric(se.tmle)), shape = 4) +
+	       facet_grid(. ~ setting) +
+	       geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
+	       ylab("SD/SE") + xlab("") +
+	       theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+		     strip.text = element_text(size = 8),
+		     strip.background = element_blank()),
+	       ggplot(tmle.results) + theme_bw() +
+	       geom_point(aes(x = initial, y = as.numeric(mse.tmle)/as.numeric(mse.km)), shape = 4) +
+	       facet_grid(. ~ setting) +
+	       geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
+	       ylab("MSE/MSE(KM)") + xlab("") +
+	       theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+		     strip.text = element_text(size = 8), 
+		     strip.background = element_blank()),
+	       ncol=1)
 #+END_SRC
 
-#+RESULTS[(2022-07-21 09:54:53) af497f29c641f5b9c142459e3794682daa2c2c4c]:
+#+RESULTS[(2022-07-21 09:55:54) 67228d1d777b837588ac423b54b5a900ffbc5a3a]:
 [[file:./simulation/output/simultation-results.png]]
 
 
