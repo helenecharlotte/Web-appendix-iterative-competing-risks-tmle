@@ -2,7 +2,9 @@
 
 This is the web appendix to our manuscript entitled /Estimation of/
 /time-specific intervention effects on continuously distributed/
-/time-to-event outcomes by targeted maximum likelihood estimation/.
+/time-to-event outcomes by targeted maximum likelihood estimation/. We
+include here (extra) simulation results, sample code and plots of
+estimated baseline hazards used in our simulation study.
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results none :exports none  :session *R* :cache yes  
