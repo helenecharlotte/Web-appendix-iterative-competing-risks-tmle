@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (12:12) 
 ## Version: 
-## Last-Updated: Jul 18 2022 (11:27) 
+## Last-Updated: Jul 20 2022 (15:50) 
 ##           By: Helene
-##     Update #: 19
+##     Update #: 56
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -25,7 +25,10 @@ run.follic <- function(M = 1, no_cores = 1, print.m = TRUE, seed.init = 100, no.
                        hal.sl = FALSE, browse.hal = FALSE,
                        sim.sample = nrow(follic),
                        informative.censoring = TRUE,
-                       browse = FALSE) {
+                       browse = FALSE,
+                       fit.survtmle = FALSE,
+                       grid.survtmle = 0:40,
+                       sl.survtmle = FALSE) {
 
     if (get.truth) {
         
@@ -108,29 +111,98 @@ run.follic <- function(M = 1, no_cores = 1, print.m = TRUE, seed.init = 100, no.
                                                        observed.treatment = observed.treatment,
                                                        randomized.treatment = randomized.treatment,
                                                        informative.censoring = informative.censoring)
-                     
-                       out <- list("est"=contmle(sim.follic, estimation=list("outcome"=list(fit=fit.initial,
-                                                                                        model=Surv(time, status==1)~chemo+stage+hgb+age,
-                                                                                        lambda.cvs=seq(0.008, 0.02, length=10)),
-                                                                         "cens"=list(fit=fit.initial,
-                                                                                     model=Surv(time, status==0)~chemo+stage+hgb+age),
-                                                                         "cr2"=list(fit=fit.initial,
-                                                                                    model=Surv(time, status==2)~chemo+stage+hgb+age)
-                                                                         ),
-                                                 treat.model=chemo~stage+hgb+age,
-                                                 treat.effect=parameter,
-                                                 no.small.steps=500,
-                                                 sl.models=list(mod1=list(Surv(time, status==1)~chemo+stage+hgb+age, t0 = (1:50)/2000)), 
-                                                 output.km=TRUE,
-                                                 rf.seed=rf.seed,
-                                                 hal.screening=TRUE,
-                                                 hal.sl=hal.sl, browse.hal=browse.hal,
-                                                 cut.time.grid=7:9, 
-                                                 cut.time.covar=5,
-                                                 V=3, lambda.cvs=seq(0.1, 0.03, length=10), maxit=1e5, penalize.time=FALSE,
-                                                 verbose=verbose,
-                                                 iterative=TRUE,
-                                                 tau=tau, target=1))
+
+                       if (fit.survtmle) {
+
+                           #-- discretize time variable: 
+                           sim.follic[, dtime := as.numeric(cut(time, breaks = grid.survtmle))]
+
+                           #-- apply survtmle:
+                           if (sl.survtmle) {
+                               fit.survtmle <- survtmle(ftime = sim.follic[["dtime"]],
+                                                        ftype = sim.follic[["status"]],
+                                                        trt = sim.follic[["chemo"]],
+                                                        adjustVars = data.frame(hgb = sim.follic[["hgb"]],
+                                                                                age = sim.follic[["age"]],
+                                                                                stage = sim.follic[["stage"]]),
+                                                        t0 = 10,
+                                                        SL.trt = c("SL.glm","SL.mean","SL.step","SL.ranger"),
+                                                        SL.ftime = c("SL.glm","SL.mean","SL.step","SL.ranger"),
+                                                        SL.ctime = c("SL.glm","SL.mean","SL.step","SL.ranger"),
+                                                        ftypeOfInterest = 1)
+                               if (verbose) {
+                                   print(fit.survtmle$ftimeMod)
+                                   print(fit.survtmle$ctimeMod)
+                                   print(fit.survtmle$trtMod)
+                               }
+                           } else if (informative.censoring) {
+                               fit.survtmle <- survtmle(ftime = sim.follic[["dtime"]],
+                                                        ftype = sim.follic[["status"]],
+                                                        trt = sim.follic[["chemo"]],
+                                                        adjustVars = data.frame(hgb = sim.follic[["hgb"]],
+                                                                                age = sim.follic[["age"]],
+                                                                                stage = sim.follic[["stage"]]),
+                                                        t0 = 10,
+                                                        glm.trt = "hgb + age + stage",
+                                                        #glm.ftime = "hgb + age + stage + as.factor(t)*trt",
+                                                        glm.ftime = "hgb + age + stage + t*trt",
+                                                        glm.ctime = "hgb + age + stage + t*trt",                         
+                                                        ftypeOfInterest = 1)
+                           } else {
+                               fit.survtmle <- survtmle(ftime = sim.follic[["dtime"]],
+                                                        ftype = sim.follic[["status"]],
+                                                        trt = sim.follic[["chemo"]],
+                                                        adjustVars = data.frame(hgb = sim.follic[["hgb"]],
+                                                                                age = sim.follic[["age"]],
+                                                                                stage = sim.follic[["stage"]]),
+                                                        t0 = 10,
+                                                        glm.trt = "hgb + age + stage",
+                                                        glm.ftime = "hgb + age + stage + t*trt",
+                                                        #glm.ctime = "as.factor(t)*trt",                         
+                                                        ftypeOfInterest = 1)
+                           }
+
+                           if (parameter == "1") {
+                               est <- fit.survtmle$est[[2]]
+                               se <- mean(unlist(fit.survtmle$ic[,"D.j1.z1"])^2)/sqrt(nrow(sim.follic))
+                           } else if (parameter == "0") {
+                               est <- fit.survtmle$est[[1]]
+                               se <- mean(unlist(fit.survtmle$ic[,"D.j1.z0"])^2)/sqrt(nrow(sim.follic))
+                           } else {
+                               est <- fit.survtmle$est[[2]] - fit.survtmle$est[[1]]
+                               se <- mean((unlist(fit.survtmle$ic[,"D.j1.z1"])-unlist(fit.survtmle$ic[,"D.j1.z0"]))^2)/sqrt(nrow(sim.follic))
+                           }
+
+                           out <- list("est" = c(survtmle.est = est, survtmle.se = se))
+                           names(out) <- paste0("m=", m)
+                           
+                           print(out)
+                           return(out)
+                           
+                       } else {                       
+                           out <- list("est"=contmle(sim.follic, estimation=list("outcome"=list(fit=fit.initial,
+                                                                                                model=Surv(time, status==1)~chemo+stage+hgb+age,
+                                                                                                lambda.cvs=seq(0.008, 0.02, length=10)),
+                                                                                 "cens"=list(fit=fit.initial,
+                                                                                             model=Surv(time, status==0)~chemo+stage+hgb+age),
+                                                                                 "cr2"=list(fit=fit.initial,
+                                                                                            model=Surv(time, status==2)~chemo+stage+hgb+age)
+                                                                                 ),
+                                                     treat.model=chemo~stage+hgb+age,
+                                                     treat.effect=parameter,
+                                                     no.small.steps=500,
+                                                     sl.models=list(mod1=list(Surv(time, status==1)~chemo+stage+hgb+age, t0 = (1:50)/2000)), 
+                                                     output.km=TRUE,
+                                                     rf.seed=rf.seed,
+                                                     hal.screening=TRUE,
+                                                     hal.sl=hal.sl, browse.hal=browse.hal,
+                                                     cut.time.grid=7:9, 
+                                                     cut.time.covar=5,
+                                                     V=3, lambda.cvs=seq(0.1, 0.03, length=10), maxit=1e5, penalize.time=FALSE,
+                                                     verbose=verbose,
+                                                     iterative=TRUE,
+                                                     tau=tau, target=1))
+                       }
 
                        names(out) <- paste0("m=", m)
                        print(out)
@@ -144,6 +216,9 @@ run.follic <- function(M = 1, no_cores = 1, print.m = TRUE, seed.init = 100, no.
         saveRDS(out,
                 file=paste0("./simulation/output/",
                             "outlist-follic-contmle",
+                            ifelse(fit.survtmle, "-survtmle", ""),
+                            ifelse(fit.survtmle, paste0("-gridlength", length(grid.survtmle)), ""),
+                            ifelse(fit.survtmle & sl.survtmle, "-sl", ""),                            
                             paste0("-", parameter),
                             paste0("-seed.init", seed.init),
                             paste0("-fit.initial", fit.initial),

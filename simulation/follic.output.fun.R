@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (12:51) 
 ## Version: 
-## Last-Updated: Jul 19 2022 (08:30) 
+## Last-Updated: Jul 20 2022 (14:45) 
 ##           By: Helene
-##     Update #: 46
+##     Update #: 105
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -30,10 +30,11 @@ follic.output.fun <- function(M = 500,
                               observed.covars = FALSE,
                               observed.treatment = TRUE,
                               randomized.treatment = FALSE,
-                              sim.sample = 1000
+                              sim.sample = 1000,
+                              output.directory = "simulation"
                               ) {
 
-    print(paste0("./simulation/output/",
+    print(paste0("./", output.directory, "/output/",
                  "outlist-follic-contmle",
                  paste0("-", parameter),
                  paste0("-seed.init", seed.init),
@@ -47,7 +48,7 @@ follic.output.fun <- function(M = 500,
                  ifelse(sim.sample == nrow(follic), "", paste0("-n", sim.sample)),
                  "-M", M, ".rds"))
 
-    print(paste0("modified at: ", file.info(paste0("./simulation/output/",
+    print(paste0("modified at: ", file.info(paste0("./", output.directory, "/output/",
                                                    "outlist-follic-contmle",
                                                    paste0("-", parameter),
                                                    paste0("-seed.init", seed.init),
@@ -71,7 +72,7 @@ follic.output.fun <- function(M = 500,
                               "simulated treatment"))))
     print("#----------------------------------------------------------------------")
 
-    print(paste0("true.psi = ", true.psi <- readRDS(file=paste0("./simulation/output/",
+    print(paste0("true.psi = ", true.psi <- readRDS(file=paste0("./", output.directory, "/output/",
                                                                 "outlist-follic-true-",
                                                                 ifelse(parameter == "ate", parameter, paste0("psi", parameter)),
                                                                 paste0("-seed.init", seed.init),
@@ -79,7 +80,7 @@ follic.output.fun <- function(M = 500,
                                                                 paste0("-tau", tau),
                                                                 ".rds"))))
 
-    out <- readRDS(file=paste0("./simulation/output/",
+    out <- readRDS(file=paste0("./", output.directory, "/output/",
                                "outlist-follic-contmle",
                                paste0("-", parameter),
                                paste0("-seed.init", seed.init),
@@ -195,6 +196,111 @@ follic.compare.results <- function(hal.output, rf.output, cox.output) {
                          se = cox.output$se$tmle, 
                          mse = cox.output$mse$tmle,
                          mse.km = cox.output$mse$tmle/cox.output$mse$km)))
+}
+
+follic.output.survtmle <- function(M = 500,
+                                   parameter = "ate",
+                                   seed.init = 100,
+                                   fit.initial = "cox",
+                                   informative.censoring = FALSE,
+                                   tau = 10,
+                                   browse = FALSE,
+                                   observed.covars = FALSE,
+                                   observed.treatment = TRUE,
+                                   randomized.treatment = FALSE,
+                                   fit.survtmle = TRUE,
+                                   grid.survtmle = (0:40),
+                                   sl.survtmle = FALSE,
+                                   sim.sample = 1000,
+                                   output.directory = "simulation"
+                                   ) {
+
+    print(paste0("./", output.directory, "/output/",
+                 "outlist-follic-contmle-survtmle",
+                 ifelse(fit.survtmle, paste0("-gridlength", length(grid.survtmle)), ""),
+                 ifelse(fit.survtmle & sl.survtmle, "-sl", ""),                            
+                 paste0("-", parameter),
+                 paste0("-seed.init", seed.init),
+                 paste0("-fit.initial", fit.initial),
+                 paste0("-tau", tau),
+                 ifelse(informative.censoring, "", "-independentcens"),
+                 ifelse(observed.covars, "", "-simulatedcovars"),
+                 ifelse(observed.treatment, "",
+                 ifelse(randomized.treatment, "-simulatedrandomizedtreatment",
+                        "-simulatedtreatment")),
+                 ifelse(sim.sample == nrow(follic), "", paste0("-n", sim.sample)),
+                 "-M", M, ".rds"))
+
+    print(paste0("modified at: ", file.info(paste0("./", output.directory, "/output/",
+                                                   "outlist-follic-contmle-survtmle",
+                                                   ifelse(fit.survtmle, paste0("-gridlength", length(grid.survtmle)), ""),
+                                                   ifelse(fit.survtmle & sl.survtmle, "-sl", ""),                            
+                                                   paste0("-", parameter),
+                                                   paste0("-seed.init", seed.init),
+                                                   paste0("-fit.initial", fit.initial),
+                                                   paste0("-tau", tau),
+                                                   ifelse(informative.censoring, "", "-independentcens"),
+                                                   ifelse(observed.covars, "", "-simulatedcovars"),
+                                                   ifelse(observed.treatment, "",
+                                                   ifelse(randomized.treatment, "-simulatedrandomizedtreatment",
+                                                          "-simulatedtreatment")),
+                                                   ifelse(sim.sample == nrow(follic), "", paste0("-n", sim.sample)),
+                                                   "-M", M, ".rds"))$mtime))
+
+    out <- readRDS(file=paste0("./", output.directory, "/output/",
+                               "outlist-follic-contmle-survtmle",
+                               ifelse(fit.survtmle, paste0("-gridlength", length(grid.survtmle)), ""),
+                               ifelse(fit.survtmle & sl.survtmle, "-sl", ""),                            
+                               paste0("-", parameter),
+                               paste0("-seed.init", seed.init),
+                               paste0("-fit.initial", fit.initial),
+                               paste0("-tau", tau),
+                               ifelse(informative.censoring, "", "-independentcens"),
+                               ifelse(observed.covars, "", "-simulatedcovars"),
+                               ifelse(observed.treatment, "",
+                               ifelse(randomized.treatment, "-simulatedrandomizedtreatment",
+                                      "-simulatedtreatment")),
+                               ifelse(sim.sample == nrow(follic), "", paste0("-n", sim.sample)),
+                               "-M", M, ".rds"))
+
+    if (browse) browser()
+
+    print("#----------------------------------------------------------------------")
+    print(paste0("# results for survtmle"))
+    print(paste0("# ", ifelse(informative.censoring, "informative censoring", "independent censoring")))
+    print(paste0("# ", ifelse(observed.covars, "observed covariates", "simulated covariates")))
+    print(paste0("# ", ifelse(observed.treatment, "observed treatment",
+                       ifelse(randomized.treatment, "simulated randomized treatment",
+                              "simulated treatment"))))
+    print("#----------------------------------------------------------------------")
+
+    print(paste0("true.psi = ", true.psi <- readRDS(file=paste0("./", output.directory, "/output/",
+                                                                "outlist-follic-true-",
+                                                                ifelse(parameter == "ate", parameter, paste0("psi", parameter)),
+                                                                paste0("-seed.init", seed.init),
+                                                                ifelse(observed.covars, "", "-simulatedcovars"),
+                                                                paste0("-tau", tau),
+                                                                ".rds"))))
+
+    survtmle.nas <- is.na(unlist(sapply(out, function(out1) out1[[1]]["survtmle.est"])))
+    print(paste0("number of na's = ", sum(survtmle.nas)))
+    print(paste0("(for m = ", paste0((1:length(out))[survtmle.nas], collapse = ","), ")"))
+    if (sum(survtmle.nas)>0) out <- out[-survtmle.nas]
+    
+    print(paste0("bias survtmle = ", mean(survtmle.est <- as.numeric(unlist(sapply(out, function(out1) out1[[1]]["survtmle.est"]))), na.rm = TRUE)-true.psi))
+    print(paste0("mean survtmle.se = ", mean(survtmle.se <- as.numeric(unlist(sapply(out, function(out) out[[1]]["survtmle.se"]))), na.rm = TRUE)))
+    print(paste0("sd survtmle = ", sd(survtmle.est, na.rm = TRUE)))
+    print(paste0("mse survtmle = ", mse(survtmle.est)))
+    print(paste0("coverage = ", coverage <- mean(survtmle.est - 1.96*survtmle.se <= true.psi &
+                                                 true.psi <= survtmle.est + 1.96*survtmle.se, na.rm = TRUE)))
+
+    return(list(bias = list(survtmle = mean(survtmle.est-true.psi, na.rm = TRUE)),
+                cov = list(survtmle = coverage),
+                se = list(survtmle = mean(survtmle.se, na.rm = TRUE)),
+                sd = list(survtmle = sd(survtmle.est, na.rm = TRUE)),
+                mse = list(survtmle = mse(survtmle.est)),
+                mse.km = NA))
+    
 }
 
 ######################################################################
