@@ -56,6 +56,16 @@ source("./R/predict.catfit.R")
 #+END_SRC    
 
 
+** Data simulation functions
+
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results none :exports code  :session *R* :cache yes  
+source("./simulation/estimate.weibulls.R")
+source("./simulation/follic.simulation.functions.R")
+source("./simulation/follic.run.fun.R")
+source("./simulation/follic.output.fun.R")
+#+END_SRC    
+
 ** Data example
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
@@ -67,11 +77,6 @@ follic <- data.table(follic)
 follic[, stage:=as.numeric(clinstg==2)] 
 follic[, chemo:=as.numeric(ch=="Y")]
 follic <- follic[, -c("clinstg", "ch"), with=FALSE]
-
-#-- discretized age: 
-follic[, age1 := 1*(age >= 45)]
-follic[, age2 := 1*(age >= 58)]
-follic[, age3 := 1*(age >= 65)]
 #+END_SRC    
 
 
@@ -224,6 +229,38 @@ grid.arrange(ggplot(survtmle.results) + theme_bw() +
 
 #+RESULTS[(2022-07-21 09:58:50) eaba787ea1885eb709e9413f11bc89d01023ed5d]:
 [[file:./simulation/output/survtmle-results.png]]
+
+** Sample code
+
+Simulate data with informative censoring: 
+
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results none :exports code  :session *R* :cache yes  
+sim.follic <- simulate.follic.3(seed = 100,
+                                sim.sample = 1000,
+                                informative.censoring = TRUE)
+#+END_SRC    
+
+Apply continuous-time TMLE with baseline estimation based on the Poisson-HAL: 
+
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results none :exports code  :session *R* :cache yes  
+contmle(sim.follic, estimation=list("outcome"=list(fit="hal", 
+                                                   model=Surv(time, status==1)~chemo+stage+hgb+age),
+                                    "cens"=list(fit="hal",
+                                                model=Surv(time, status==0)~chemo+stage+hgb+age),
+                                    "cr2"=list(fit="hal",
+                                               model=Surv(time, status==2)~chemo+stage+hgb+age)
+                                    ),
+        treat.model=chemo~stage+hgb+age,
+        treat.effect="ate",
+        output.km=TRUE,
+        hal.screening=TRUE,
+        V=3, lambda.cvs=seq(0.1, 0.03, length=10), maxit=1e5, penalize.time=FALSE,
+        tau=10, target=1)
+#+END_SRC    
+
+
 
 ** Baseline hazard estimation
 
@@ -1401,387 +1438,4 @@ ggplot(bhazs.uninformative.cens.long[!is.na(fit.chaz) & status=="status = 0"]) +
 
 
 
-
-** Simulating data 
-
-
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results none :exports none  :session *R* :cache yes
-#######################################################################################
-
-#--- function to simulate from Weibull (change-points!) 
-#
-
-simulate.change.weibull.3 <- function(seed = 100,
-                                      follic.sim = follic, #sim.sample = nrow(follic),
-                                      change.weibull.parameters = list(
-                                        nu.A1.t1 = gamma.status1.t1.1,
-                                        nu.A1.t2 = gamma.status1.t2.1,
-                                        nu.A1.t3 = gamma.status1.t3.1,
-                                        nu.A0.t1 = gamma.status1.t1.0,
-                                        nu.A0.t2 = gamma.status1.t2.0,
-                                        nu.A0.t3 = gamma.status1.t3.0,
-                                        eta.A1.t1 = lambda.status1.t1.1^gamma.status1.t1.1,
-                                        eta.A1.t2 = lambda.status1.t2.1^gamma.status1.t2.1,
-                                        eta.A1.t3 = lambda.status1.t3.1^gamma.status1.t3.1,
-                                        eta.A0.t1 = lambda.status1.t1.0^gamma.status1.t1.0,
-                                        eta.A0.t2 = lambda.status1.t2.0^gamma.status1.t2.0,
-                                        eta.A0.t3 = lambda.status1.t3.0^gamma.status1.t3.0                                            
-                                      ),
-                                      t0 = log(bhazs[chaz1>0 & chemo==0][["time"]])[kmax.1.t1.0],
-                                      t1 = log(bhazs[chaz1>0 & chemo==0][["time"]])[kmax.1.t2.0],
-                                      counterfactual = NULL,
-                                      observed.covars = TRUE,
-                                      fit.cox = bhaz.cox[["1"]]) {
-
-  set.seed(seed)
-
-  if (length(names(coef(fit.cox)))>0) {
-    exp.covar <- follic.sim[, exp(rowSums(sapply(names(coef(fit.cox))[names(coef(fit.cox)) != "chemo" & sapply(names(coef(fit.cox)), function(name) length(grep("period", name)) == 0)], function(covar) {
-      coef(fit.cox)[covar]*follic.sim[[covar]]
-    })))]
-  } else {
-    exp.covar <- exp(0)
-  }
-
-  Lambda.inv <- function(u, t, nu, eta, nu2=nu, eta2=eta, nu3=nu, eta3=eta) {
-    return( rowSums(cbind((u <= (eta*exp.covar)*t0^{nu}) *
-                          (( (u + eta*exp.covar*t^{nu}) /
-                             (eta*exp.covar) )^{1/nu} - t),
-    (u > (eta*exp.covar)*t0^{nu} & u <= (eta2*exp.covar)*t1^{nu2}) *
-    (( (u - (eta2*exp.covar)*t0^{nu2} +
-        eta2*exp.covar*t0^{nu2}) /
-       (eta2*exp.covar) )^{1/nu2} - t),
-    (u > (eta2*exp.covar)*t1^{nu2}) *
-    (( (u - (eta3*exp.covar)*t1^{nu3} +
-        eta3*exp.covar*t1^{nu3}) /
-       (eta3*exp.covar) )^{1/nu3} - t)), na.rm=TRUE) )
-  }
-
-  U <- -log(runif(nrow(follic.sim)))
-
-  Tout.A1 <- Lambda.inv(U, 0,
-                        nu = change.weibull.parameters[["nu.A1.t1"]],
-                        eta = change.weibull.parameters[["eta.A1.t1"]],
-                        nu2 = change.weibull.parameters[["nu.A1.t2"]],
-                        eta2 = change.weibull.parameters[["eta.A1.t2"]],
-                        nu3 = change.weibull.parameters[["nu.A1.t3"]],
-                        eta3 = change.weibull.parameters[["eta.A1.t3"]])
-
-  Tout.A0 <- Lambda.inv(U, 0,
-                        nu = change.weibull.parameters[["nu.A0.t1"]],
-                        eta = change.weibull.parameters[["eta.A0.t1"]],
-                        nu2 = change.weibull.parameters[["nu.A0.t2"]],
-                        eta2 = change.weibull.parameters[["eta.A0.t2"]],
-                        nu3 = change.weibull.parameters[["nu.A0.t3"]],
-                        eta3 = change.weibull.parameters[["eta.A0.t3"]])
-
-  if (length(counterfactual) == 0) {
-    return(Tout <- follic.sim[["chemo"]]*Tout.A1 + (1-follic.sim[["chemo"]])*Tout.A0)
-  } else if (counterfactual == 1) {
-    return(Tout.A1) 
-  } else {
-    return(Tout.A0) 
-  }
-}
-
-#######################################################################################
-
-#--- function to simulate follic data 
-#
-
-simulate.follic.3 <- function(observed.covars = TRUE,
-                              sim.sample = nrow(follic),
-                              counterfactual = NULL,
-                              seed = 100,
-                              informative.censoring = TRUE,
-                              keep.times = FALSE) {
-
-  set.seed(seed)
-
-  if (observed.covars) {
-    if (length(sim.sample)>0) {
-      follic.sim <- follic[sample(1:nrow(follic), sim.sample, replace=TRUE)]
-    } else {
-      follic.sim <- follic
-    }
-  } else {
-    follic.sim <- data.table(stage = rbinom(sim.sample, 1, p.stage),
-                             chemo = rbinom(sim.sample, 1, p.chemo),
-                             age = rnorm(sim.sample, p.age[[1]][["mean"]], p.age[[1]][["sd"]]),
-                             hgb = rnorm(sim.sample, p.hgb[[1]][["mean"]], p.hgb[[1]][["sd"]]))
-  }
-
-  if (informative.censoring) {
-    T0 <- simulate.change.weibull.3(follic.sim = follic.sim,
-                                    seed = seed*1010,
-                                    change.weibull.parameters = list(
-                                      nu.A1.t1 = gamma.status0.t1.1,
-                                      nu.A1.t2 = gamma.status0.t2.1,
-                                      nu.A1.t3 = gamma.status0.t3.1,
-                                      nu.A0.t1 = gamma.status0.t1.0,
-                                      nu.A0.t2 = gamma.status0.t2.0,
-                                      nu.A0.t3 = gamma.status0.t3.0,
-                                      eta.A1.t1 = lambda.status0.t1.1^gamma.status0.t1.1,
-                                      eta.A1.t2 = lambda.status0.t2.1^gamma.status0.t2.1,
-                                      eta.A1.t3 = lambda.status0.t3.1^gamma.status0.t3.1,
-                                      eta.A0.t1 = lambda.status0.t1.0^gamma.status0.t1.0,
-                                      eta.A0.t2 = lambda.status0.t2.0^gamma.status0.t2.0,
-                                      eta.A0.t3 = lambda.status0.t3.0^gamma.status0.t3.0                                            
-                                    ),
-                                    counterfactual = counterfactual,
-                                    t0 = (bhazs[chaz0>0 & chemo==0][["time"]])[kmax.0.t1.0],
-                                    t1 = (bhazs[chaz0>0 & chemo==0][["time"]])[kmax.0.t2.0], 
-                                    fit.cox = bhaz.cox[["0"]])
-  } else {
-    T0 <- simulate.change.weibull.3(follic.sim = follic.sim,
-                                    seed = seed*1010,
-                                    change.weibull.parameters = list(
-                                      nu.A1.t1 = gamma.status0.independent.t1.1,
-                                      nu.A1.t2 = gamma.status0.independent.t2.1,
-                                      nu.A1.t3 = gamma.status0.independent.t3.1,
-                                      nu.A0.t1 = gamma.status0.independent.t1.0,
-                                      nu.A0.t2 = gamma.status0.independent.t2.0,
-                                      nu.A0.t3 = gamma.status0.independent.t3.0,
-                                      eta.A1.t1 = lambda.status0.independent.t1.1^gamma.status0.independent.t1.1,
-                                      eta.A1.t2 = lambda.status0.independent.t2.1^gamma.status0.independent.t2.1,
-                                      eta.A1.t3 = lambda.status0.independent.t3.1^gamma.status0.independent.t3.1,
-                                      eta.A0.t1 = lambda.status0.independent.t1.0^gamma.status0.independent.t1.0,
-                                      eta.A0.t2 = lambda.status0.independent.t2.0^gamma.status0.independent.t2.0,
-                                      eta.A0.t3 = lambda.status0.independent.t3.0^gamma.status0.independent.t3.0                                            
-                                    ),
-                                    counterfactual = counterfactual,
-                                    t0 = (bhazs.uninformative.cens[chaz0>0 & chemo==0][["time"]])[kmax.0.t1.0],
-                                    t1 = (bhazs.uninformative.cens[chaz0>0 & chemo==0][["time"]])[kmax.0.t2.0], 
-                                    fit.cox = bhaz.uninformative.cens[["0"]])
-  }
-
-  T1 <- simulate.change.weibull.3(follic.sim = follic.sim,
-                                  seed = seed*9010,
-                                  change.weibull.parameters = list(
-                                    nu.A1.t1 = gamma.status1.t1.1,
-                                    nu.A1.t2 = gamma.status1.t2.1,
-                                    nu.A1.t3 = gamma.status1.t3.1,
-                                    nu.A0.t1 = gamma.status1.t1.0,
-                                    nu.A0.t2 = gamma.status1.t2.0,
-                                    nu.A0.t3 = gamma.status1.t3.0,
-                                    eta.A1.t1 = lambda.status1.t1.1^gamma.status1.t1.1,
-                                    eta.A1.t2 = lambda.status1.t2.1^gamma.status1.t2.1,
-                                    eta.A1.t3 = lambda.status1.t3.1^gamma.status1.t3.1,
-                                    eta.A0.t1 = lambda.status1.t1.0^gamma.status1.t1.0,
-                                    eta.A0.t2 = lambda.status1.t2.0^gamma.status1.t2.0,
-                                    eta.A0.t3 = lambda.status1.t3.0^gamma.status1.t3.0
-                                  ),
-                                  counterfactual = counterfactual,
-                                  t0 = (bhazs[chaz1>0 & chemo==0][["time"]])[kmax.1.t1.0],
-                                  t1 = (bhazs[chaz1>0 & chemo==0][["time"]])[kmax.1.t2.0], 
-                                  fit.cox = bhaz.cox[["1"]])
-
-  T2 <- simulate.change.weibull.3(follic.sim = follic.sim,
-                                  seed = seed*5010,
-                                  change.weibull.parameters = list(
-                                    nu.A1.t1 = gamma.status2.t1.1,
-                                    nu.A1.t2 = gamma.status2.t2.1,
-                                    nu.A1.t3 = gamma.status2.t3.1,
-                                    nu.A0.t1 = gamma.status2.t1.0,
-                                    nu.A0.t2 = gamma.status2.t2.0,
-                                    nu.A0.t3 = gamma.status2.t3.0,
-                                    eta.A1.t1 = lambda.status2.t1.1^gamma.status2.t1.1,
-                                    eta.A1.t2 = lambda.status2.t2.1^gamma.status2.t2.1,
-                                    eta.A1.t3 = lambda.status2.t3.1^gamma.status2.t3.1,
-                                    eta.A0.t1 = lambda.status2.t1.0^gamma.status2.t1.0,
-                                    eta.A0.t2 = lambda.status2.t2.0^gamma.status2.t2.0,
-                                    eta.A0.t3 = lambda.status2.t3.0^gamma.status2.t3.0
-                                  ),
-                                  counterfactual = counterfactual, 
-                                  t0 = (bhazs[chaz2>0 & chemo==0][["time"]])[kmax.2.t1.0],
-                                  t1 = (bhazs[chaz2>0 & chemo==0][["time"]])[kmax.2.t2.0], 
-                                  fit.cox = bhaz.cox[["2"]])
-
-  if (length(counterfactual)>0) {
-    follic.sim[, time := apply(cbind(T1, T2), 1, min)]
-  } else {
-    follic.sim[, time := apply(cbind(T1, T2, T0), 1, min)]
-  }
-
-  follic.sim[, status := 1*(time == T1) + 2*(time == T2)]
-
-  return(follic.sim)
-}
- 
-#######################################################################################
-#+END_SRC
-
-
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results none :exports none  :session *R* :cache yes
-#######################################################################################
-source("./simulation/follic.simulation.functions.R")
-source("./simulation/follic.run.fun.R")
-source("./simulation/follic.output.fun.R") 
-#######################################################################################
-#+END_SRC
-
-*** Simulate data with covariate dependent censoring
-
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results none :exports code  :session *R* :cache yes  
-seed <- 291  
-sim.follic.3 <- simulate.follic.3(observed.covars = TRUE,
-                                  sim.sample = nrow(follic),
-                                  counterfactual = NULL,
-                                  seed = seed, 
-                                  informative.censoring = TRUE,
-                                  keep.times = FALSE) 
-#+END_SRC
-
-
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output :exports code  :session *R* :cache yes
-sim.follic.3[, table(status)]  
-follic[, table(status)]    
-#+END_SRC    
-
-#+RESULTS[(2022-07-18 09:48:32) 0080a27a84502d4817b0dcd8fb0ffa6a27a7791f]:
-: status
-:   0   1   2 
-: 213 267  61
-: status
-:   0   1   2 
-: 193 272  76
-
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output :exports code  :session *R* :cache yes
-sim.follic.3[, summary(time)]   
-follic[, summary(time)]   
-#+END_SRC    
-
-#+RESULTS[(2022-07-18 09:48:42) bbc4e7bac9ba888f1cf95578222c2103c77d294f]:
-:     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-:  0.00238  0.99337  3.42730  6.31197  8.38879 32.10090
-:      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-:  0.002738  1.919233  5.464750  7.393791 10.850103 31.101985
-
-*** Simulate data with independent censoring
-
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results none :exports code  :session *R* :cache yes  
-seed <- 291 
-sim.follic.3 <- simulate.follic.3(observed.covars = TRUE,
-                                  sim.sample = nrow(follic),
-                                  counterfactual = NULL,
-                                  seed = seed,  
-                                  informative.censoring = FALSE,
-                                  keep.times = FALSE)
-#+END_SRC
-
-
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output :exports code  :session *R* :cache yes
-sim.follic.3[, table(status)]    
-follic[, table(status)]   
-#+END_SRC    
-
-#+RESULTS[(2022-07-18 09:48:57) 892ece306d2463a22d7f8f2258f93a3e0426a2ba]:
-: status
-:   0   1   2 
-: 183 288  70
-: status
-:   0   1   2 
-: 193 272  76
-
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output :exports code  :session *R* :cache yes
-sim.follic.3[, summary(time)]  
-follic[, summary(time)]     
-#+END_SRC    
-
-#+RESULTS[(2022-07-18 09:49:05) 7f21cba868d269d557bdd7e30f5c4f26a97e8bbf]:
-:      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-:  0.002382  1.485356  4.574179  6.812014  9.659696 30.136407
-:      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-:  0.002738  1.919233  5.464750  7.393791 10.850103 31.101985
-
-
-*** Simulate data with informative censoring and simulated treatment
-
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results none :exports code  :session *R* :cache yes  
-seed <- 291  
-sim.follic.3 <- simulate.follic.3(observed.covars = TRUE,
-                                  sim.sample = nrow(follic),
-                                  counterfactual = NULL,
-                                  seed = seed,  
-                                  informative.censoring = TRUE, 
-                                  observed.treatment = FALSE, 
-                                  keep.times = FALSE)
-#+END_SRC
-
-
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output :exports code  :session *R* :cache yes
-sim.follic.3[, table(status)]     
-follic[, table(status)]    
-#+END_SRC    
-
-#+RESULTS[(2022-07-18 09:50:36) cf6550179f27ca7d4859b46e4fb47deaf3226f08]:
-: status
-:   0   1   2 
-: 216 264  61
-: status
-:   0   1   2 
-: 193 272  76
-
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output :exports code  :session *R* :cache yes
-sim.follic.3[, summary(time)]  
-follic[, summary(time)]       
-#+END_SRC    
-
-#+RESULTS[(2022-07-18 09:50:40) 297753fc7682e74e97afd986c632b6270f5f2879]:
-:      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-:  0.003955  0.993374  3.723727  6.359207  8.915513 29.597867
-:      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-:  0.002738  1.919233  5.464750  7.393791 10.850103 31.101985
-
-*** Simulate data with independent censoring and simulated treatment
-
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results none :exports code  :session *R* :cache yes  
-seed <- 291  
-sim.follic.3 <- simulate.follic.3(observed.covars = TRUE,
-                                  sim.sample = nrow(follic),
-                                  counterfactual = NULL,
-                                  seed = seed,   
-                                  informative.censoring = FALSE,
-                                  observed.treatment = FALSE,  
-                                  keep.times = FALSE)
-#+END_SRC
-
-
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output :exports code  :session *R* :cache yes
-sim.follic.3[, table(status)]       
-follic[, table(status)]    
-#+END_SRC    
-
-#+RESULTS[(2022-07-18 09:50:46) 4ba6a7c4edd08099ffb8ca8bbd2dbd2df5d3622e]:
-: status
-:   0   1   2 
-: 181 292  68
-: status
-:   0   1   2 
-: 193 272  76
-
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results output :exports code  :session *R* :cache yes
-sim.follic.3[, summary(time)]   
-follic[, summary(time)]      
-#+END_SRC    
-
-#+RESULTS[(2022-07-18 09:50:49) b0bce10854afc4291904e9a53109b1b230c142b6]:
-:      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-:  0.003955  1.599156  4.974378  6.910670  9.687593 30.136407
-:      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-:  0.002738  1.919233  5.464750  7.393791 10.850103 31.101985
 

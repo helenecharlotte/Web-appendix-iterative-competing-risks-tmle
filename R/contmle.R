@@ -779,7 +779,7 @@ contmle <- function(dt,
 
                 if (hal.screening) { #--- first screening
                   
-                    print(paste0("hal for event = ", fit.delta))
+                    if (verbose) print(paste0("hal for event = ", fit.delta))
 
                     (one.way.screening <- hal.screening(covars=covars, dt=dt, cut.one.way=5, time.var="time",
                                                         cut.time=3, mat=mat, delta.var="delta.obs",
@@ -799,7 +799,7 @@ contmle <- function(dt,
                                                             mat=mat, cut.two.way=cut.two.way))                  
                         if (verbose & length(one.way.screening)>0) print(paste0("variables picked by initial screening: ", paste0(one.way.screening, collapse=", ")))
                         if (verbose & length(two.way.screening)>0) print(paste0("interactions picked by initial screening: "))
-                        print(two.way.screening)
+                        if (verbose) print(two.way.screening)
                     }
                    
                     if (FALSE) {
