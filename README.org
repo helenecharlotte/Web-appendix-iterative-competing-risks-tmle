@@ -198,31 +198,31 @@ tmle.results[, mse.km := na.locf(mse.km), by = setting]
 
 *** More results for survtmle
 
-#+BEGIN_SRC R :results file graphics :file ./simulation/output/survtmle-results.png :exports none :session *R* :cache yes :height 500 :width 500
+#+BEGIN_SRC R :results file graphics :file ./simulation/output/survtmle-results.png :exports none :session *R* :cache yes :height 1100 :width 500
 grid.arrange(ggplot(survtmle.results) + theme_bw() + 
-             geom_point(aes(x = grid.length.used, y = as.numeric(bias.survtmle)), shape = 4) +
+             geom_point(aes(x = grid.length.used, y = as.numeric(bias.survtmle)), shape = 4) + 
              facet_grid(initial ~ setting) +
              geom_hline(yintercept = 0, linetype = "dashed", col = "red", alpha = 0.5) +
              ylab("bias") + xlab("grid length used") +
-             theme(strip.text = element_text(size = 10),
+             theme(strip.text = element_text(size = 9.5),
                    strip.background = element_blank()),
              ggplot(survtmle.results) + theme_bw() +
              geom_point(aes(x = grid.length.used, y = as.numeric(cov.survtmle)), shape = 4) +
              facet_grid(initial ~ setting) +
              geom_hline(yintercept = 0.95, linetype = "dashed", col = "red", alpha = 0.5) +
              ylab("coverage") + xlab("grid length used") +
-             theme(strip.text = element_text(size = 10),
+             theme(strip.text = element_text(size = 9.5),
                    strip.background = element_blank()),
              ggplot(survtmle.results) + theme_bw() +
              geom_point(aes(x = grid.length.used, y = as.numeric(sd.survtmle)/as.numeric(se.survtmle)), shape = 4) +
              facet_grid(initial ~ setting) +
              geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
              ylab("SD/SE") + xlab("grid length used") +
-             theme(strip.text = element_text(size = 10),  
+             theme(strip.text = element_text(size = 9.5),  
                    strip.background = element_blank())) 
 #+END_SRC
 
-#+RESULTS[(2022-07-21 09:57:53) 4b4798380358f02a16ea3af48fece70deb5514ac]:
+#+RESULTS[(2022-07-21 09:58:50) eaba787ea1885eb709e9413f11bc89d01023ed5d]:
 [[file:./simulation/output/survtmle-results.png]]
 
 ** Baseline hazard estimation
