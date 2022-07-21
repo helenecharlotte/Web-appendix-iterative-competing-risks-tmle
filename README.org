@@ -11,7 +11,10 @@ setwd("~/research/TMLE-from-2020june/survival-baseline/Web-appendix-iterative-co
 
 ** Overview
 
-Simulation results
+Data:
+- [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle][Follic data example]]
+
+Simulation results: 
 - [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#simulation-results][All results]]
 - [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#more-results-for-survtmle][Extra results for survtmle (varying grid)]]
 
@@ -126,6 +129,8 @@ follic[time<=10, table(status)]
 :   0   1   2 
 :  95 251  46
 
+[[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle][Back to top.]]
+
 ** Simulation results
 
 
@@ -213,7 +218,7 @@ tmle.results[, mse.km := na.locf(mse.km), by = setting]
 #+RESULTS[(2022-07-21 09:57:57) e0f7fcdee9738424abf8a0945048b0d3320bd31b]:
 [[file:./simulation/output/simultation-results.png]]
 
-
+[[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle][Back to top.]]
 
 *** More results for survtmle
 
@@ -243,6 +248,8 @@ grid.arrange(ggplot(survtmle.results) + theme_bw() +
 
 #+RESULTS[(2022-07-21 09:58:50) eaba787ea1885eb709e9413f11bc89d01023ed5d]:
 [[file:./simulation/output/survtmle-results.png]]
+
+[[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle][Back to top.]]
 
 ** Sample code
 
@@ -274,6 +281,7 @@ contmle(sim.follic, estimation=list("outcome"=list(fit="hal",
         tau=10, target=1)
 #+END_SRC    
 
+[[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle][Back to top.]]
 
 
 ** Baseline hazard estimation
@@ -715,6 +723,8 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) +
 [[file:./figures/fig-hazards-time-hazard1-3changepoints.png]]
 
 
+[[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle][Back to top.]]
+
 *** Cause two events (one changepoint)
 
 
@@ -927,6 +937,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 2"]) +
 #+RESULTS[(2022-07-18 09:46:57) 96e1d24bad0b28f3a6a7c4b2bfe27fb144e21b30]:
 [[file:./figures/fig-hazards-time-hazard2-2changepoints.png]]
 
+[[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle][Back to top.]]
 
 *** Censoring events (covariate dependent)
 
@@ -1140,7 +1151,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 0"]) +
 #+RESULTS[(2022-07-18 09:47:06) e27afbfdd29b08e93954f481f8a64f22d5b74888]:
 [[file:./figures/fig-hazards-time-hazard0-2changepoints.png]]
 
-
+[[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle][Back to top.]]
 
 *** Censoring events (independent)
 
@@ -1450,6 +1461,6 @@ ggplot(bhazs.uninformative.cens.long[!is.na(fit.chaz) & status=="status = 0"]) +
 #+RESULTS[(2022-07-18 09:47:19) ffe418cc5ab5c87b605e9ca969350d58142c7519]:
 [[file:./figures/fig-hazards-time-hazard0-independent-2changepoints.png]]
 
-
+[[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle][Back to top.]]
 
 
