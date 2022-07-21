@@ -11,6 +11,20 @@ setwd("~/research/TMLE-from-2020june/survival-baseline/Web-appendix-iterative-co
 
 ** Overview
 
+Simulation results
+- [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#simulation-results][All results]]
+- [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#more-results-for-survtmle][Extra results for survtmle (varying grid)]]
+
+Sample code:
+- [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#sample-code][Sample code]]
+
+Fitting baseline hazard by Weibull distributions with parameters
+changing over time:
+
+- [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#cause-one-events-three-changepoints][Final fitted cause-one specific baseline hazard]]
+- [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#cause-two-events-add-changepoint][Final fitted cause-two specific baseline hazard]]
+- [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#censoring-events-covariate-dependent-add-changepoint][Final fitted covariate dependent censoring baseline hazard]]
+- [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#censoring-events-independent-but-with-two-changepoints][Final fitted covariate independent censoring baseline hazard]]
 
 ** Load packages and functions
 
