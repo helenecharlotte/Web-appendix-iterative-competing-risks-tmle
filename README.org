@@ -162,7 +162,7 @@ tmle.results[, mse.km := na.locf(mse.km), by = setting]
 	       geom_hline(yintercept = 0, linetype = "dashed", col = "red", alpha = 0.5) +
 	       ylab("bias") + xlab("") +
 	       theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
-		     strip.text = element_text(size = 12), 
+		     strip.text = element_text(size = 10), 
 		     strip.background = element_blank()),
 	       ggplot(tmle.results) + theme_bw() +
 	       geom_point(aes(x = initial, y = as.numeric(cov.tmle)), shape = 4) +
@@ -170,7 +170,7 @@ tmle.results[, mse.km := na.locf(mse.km), by = setting]
 	       geom_hline(yintercept = 0.95, linetype = "dashed", col = "red", alpha = 0.5) +
 	       ylab("coverage") + xlab("") +
 	       theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
-		     strip.text = element_text(size = 12),
+		     strip.text = element_text(size = 10),
 		     strip.background = element_blank()),
 	       ggplot(tmle.results) + theme_bw() +
 	       geom_point(aes(x = initial, y = as.numeric(sd.tmle)/as.numeric(se.tmle)), shape = 4) +
@@ -178,7 +178,7 @@ tmle.results[, mse.km := na.locf(mse.km), by = setting]
 	       geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
 	       ylab("SD/SE") + xlab("") +
 	       theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
-		     strip.text = element_text(size = 12),
+		     strip.text = element_text(size = 10),
 		     strip.background = element_blank()),
 	       ggplot(tmle.results) + theme_bw() + 
 	       geom_point(aes(x = initial, y = as.numeric(mse.tmle)/as.numeric(mse.km)), shape = 4) +
@@ -186,12 +186,12 @@ tmle.results[, mse.km := na.locf(mse.km), by = setting]
 	       geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
 	       ylab("MSE/MSE(KM)") + xlab("") +
 	       theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
-		     strip.text = element_text(size = 12), 
+		     strip.text = element_text(size = 10),  
 		     strip.background = element_blank()),
 	       ncol=1)
 #+END_SRC
 
-#+RESULTS[(2022-07-21 09:57:09) c462b4a04ab5745ad42c81c6195a9b25e2631f28]:
+#+RESULTS[(2022-07-21 09:57:57) e0f7fcdee9738424abf8a0945048b0d3320bd31b]:
 [[file:./simulation/output/simultation-results.png]]
 
 
@@ -204,25 +204,25 @@ grid.arrange(ggplot(survtmle.results) + theme_bw() +
              facet_grid(initial ~ setting) +
              geom_hline(yintercept = 0, linetype = "dashed", col = "red", alpha = 0.5) +
              ylab("bias") + xlab("grid length used") +
-             theme(strip.text = element_text(size = 12),
+             theme(strip.text = element_text(size = 10),
                    strip.background = element_blank()),
              ggplot(survtmle.results) + theme_bw() +
              geom_point(aes(x = grid.length.used, y = as.numeric(cov.survtmle)), shape = 4) +
              facet_grid(initial ~ setting) +
              geom_hline(yintercept = 0.95, linetype = "dashed", col = "red", alpha = 0.5) +
              ylab("coverage") + xlab("grid length used") +
-             theme(strip.text = element_text(size = 12),
+             theme(strip.text = element_text(size = 10),
                    strip.background = element_blank()),
              ggplot(survtmle.results) + theme_bw() +
              geom_point(aes(x = grid.length.used, y = as.numeric(sd.survtmle)/as.numeric(se.survtmle)), shape = 4) +
              facet_grid(initial ~ setting) +
              geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
              ylab("SD/SE") + xlab("grid length used") +
-             theme(strip.text = element_text(size = 12), 
+             theme(strip.text = element_text(size = 10),  
                    strip.background = element_blank())) 
 #+END_SRC
 
-#+RESULTS[(2022-07-21 09:57:06) 93e6e352a38d8c82408b6085f11a2e8e50e1e579]:
+#+RESULTS[(2022-07-21 09:57:53) 4b4798380358f02a16ea3af48fece70deb5514ac]:
 [[file:./simulation/output/survtmle-results.png]]
 
 ** Baseline hazard estimation
