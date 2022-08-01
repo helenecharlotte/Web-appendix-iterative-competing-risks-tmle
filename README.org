@@ -139,38 +139,38 @@ follic[time<=10, table(status)]
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results none :exports none  :session *R* :cache yes
 contmle.results <- do.call("rbind", lapply(list("Randomized treatment + independent censoring", "Informative censoring"), function(outer.which) {
-    out.inner <- data.table(do.call("rbind", lapply(list("hal", "cox", "rf"), function(inner.initial) {
-        try(unlist(follic.output.fun(M = 500,
-                                     randomized.treatment = outer.which == "Randomized treatment + independent censoring",
-                                     observed.treatment = outer.which != "Randomized treatment + independent censoring",
-                                     informative.censoring = outer.which != "Randomized treatment + independent censoring",
-                                     observed.covars = TRUE,
-                                     fit.initial = inner.initial,
-                                     sim.sample = 1000)))
-    })))
-    out.inner[, initial := c("HAL+TMLE", "Cox+TMLE", "RF+TMLE")][, setting := outer.which]
-    return(out.inner[substr(bias.tmle, 1, 5) != "Error"])
+  out.inner <- data.table(do.call("rbind", lapply(list("hal", "cox", "rf"), function(inner.initial) {
+    try(unlist(follic.output.fun(M = 500,
+                                 randomized.treatment = outer.which == "Randomized treatment + independent censoring",
+                                 observed.treatment = outer.which != "Randomized treatment + independent censoring",
+                                 informative.censoring = outer.which != "Randomized treatment + independent censoring",
+                                 observed.covars = TRUE,
+                                 fit.initial = inner.initial,
+                                 sim.sample = 1000)))
+  })))
+  out.inner[, initial := c("HAL+TMLE", "Cox+TMLE", "RF+TMLE")][, setting := outer.which]
+  return(out.inner[substr(bias.tmle, 1, 5) != "Error"])
 }))
 
 contmle.results <- rbind(contmle.results, do.call("rbind", lapply(unique(contmle.results[["setting"]]), function(which) {
-    contmle.results[setting == which & tolower(substr(initial,1,3)) == "hal"][, initial := "KM"][, bias.tmle := bias.km][, se.tmle := se.km][, sd.tmle := sd.km][, mse.tmle := mse.km]
+  contmle.results[setting == which & tolower(substr(initial,1,3)) == "hal"][, initial := "KM"][, bias.tmle := bias.km][, se.tmle := se.km][, sd.tmle := sd.km][, mse.tmle := mse.km]
 })))
 
 survtmle.results <- do.call("rbind", lapply(list("Randomized treatment + independent censoring", "Informative censoring"), function(outer.which) {
-    do.call("rbind", lapply(list((0:10)*4, (0:20)*2, (0:40), (0:80)/2), function(inner.grid) {
-        out.inner <- data.table(do.call("rbind", lapply(list("glm", "sl"), function(inner.sl) {
-            try(unlist(follic.output.survtmle(M = 500,
-                                       randomized.treatment = outer.which == "Randomized treatment + independent censoring",
-                                       observed.treatment = outer.which != "Randomized treatment + independent censoring",
-                                       informative.censoring = outer.which != "Randomized treatment + independent censoring",
-                                       observed.covars = TRUE,
-                                       sl.survtmle = inner.sl == "sl", 
-                                       grid.survtmle = inner.grid, 
-                                       sim.sample = 1000)))
-        })))
-        out.inner[, initial := c("GLM", "SL")][, grid.length.used := length(inner.grid)][, setting := outer.which]
-        return(out.inner[substr(bias.survtmle, 1, 5) != "Error"])
-    }))
+  do.call("rbind", lapply(list((0:10)*4, (0:20)*2, (0:40), (0:80)/2), function(inner.grid) {
+    out.inner <- data.table(do.call("rbind", lapply(list("glm", "sl"), function(inner.sl) {
+      try(unlist(follic.output.survtmle(M = 500,
+                                        randomized.treatment = outer.which == "Randomized treatment + independent censoring",
+                                        observed.treatment = outer.which != "Randomized treatment + independent censoring",
+                                        informative.censoring = outer.which != "Randomized treatment + independent censoring",
+                                        observed.covars = TRUE,
+                                        sl.survtmle = inner.sl == "sl", 
+                                        grid.survtmle = inner.grid, 
+                                        sim.sample = 1000)))
+    })))
+    out.inner[, initial := c("GLM", "SL")][, grid.length.used := length(inner.grid)][, setting := outer.which]
+    return(out.inner[substr(bias.survtmle, 1, 5) != "Error"])
+  }))
 }))
 
 survtmle.results.fixed.grid <- survtmle.results[grid.length.used == 41]
@@ -178,46 +178,47 @@ survtmle.results.fixed.grid[, initial := paste0("survtmle (", initial, ")")]
 names(survtmle.results.fixed.grid) <- gsub("surv", "", names(survtmle.results.fixed.grid))
 tmle.results <- rbind(contmle.results, survtmle.results.fixed.grid, fill = TRUE)
 tmle.results[, mse.km := na.locf(mse.km), by = setting]
+tmle.results[initial == "KM", initial := "Aalen-Johansen"]
 #+END_SRC
 
 
 #+BEGIN_SRC R :results file graphics :file ./simulation/output/simultation-results.png :exports none :session *R* :cache yes :height 1500 :width 500
-  grid.arrange(ggplot(tmle.results) + theme_bw() + 
-	       geom_point(aes(x = initial, y = as.numeric(bias.tmle)), shape = 4) +
-	       facet_grid(. ~ setting) +
-	       geom_hline(yintercept = 0, linetype = "dashed", col = "red", alpha = 0.5) +
-	       ylab("bias") + xlab("") +
-	       theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
-		     strip.text = element_text(size = 10), 
-		     strip.background = element_blank()),
-	       ggplot(tmle.results) + theme_bw() +
-	       geom_point(aes(x = initial, y = as.numeric(cov.tmle)), shape = 4) +
-	       facet_grid(. ~ setting) +
-	       geom_hline(yintercept = 0.95, linetype = "dashed", col = "red", alpha = 0.5) +
-	       ylab("coverage") + xlab("") +
-	       theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
-		     strip.text = element_text(size = 10),
-		     strip.background = element_blank()),
-	       ggplot(tmle.results) + theme_bw() +
-	       geom_point(aes(x = initial, y = as.numeric(sd.tmle)/as.numeric(se.tmle)), shape = 4) +
-	       facet_grid(. ~ setting) +
-	       geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
-	       ylab("SD/SE") + xlab("") +
-	       theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
-		     strip.text = element_text(size = 10),
-		     strip.background = element_blank()),
-	       ggplot(tmle.results) + theme_bw() + 
-	       geom_point(aes(x = initial, y = as.numeric(mse.tmle)/as.numeric(mse.km)), shape = 4) +
-	       facet_grid(. ~ setting) +
-	       geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
-	       ylab("MSE/MSE(KM)") + xlab("") +
-	       theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
-		     strip.text = element_text(size = 10),  
-		     strip.background = element_blank()),
-	       ncol=1)
+grid.arrange(ggplot(tmle.results) + theme_bw() + 
+             geom_point(aes(x = initial, y = as.numeric(bias.tmle)), shape = 4) +
+             facet_grid(. ~ setting) + 
+             geom_hline(yintercept = 0, linetype = "dashed", col = "red", alpha = 0.5) +
+             ylab("bias") + xlab("") +
+             theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+                   strip.text = element_text(size = 10), 
+                   strip.background = element_blank()),
+             ggplot(tmle.results) + theme_bw() +
+             geom_point(aes(x = initial, y = as.numeric(cov.tmle)), shape = 4) +
+             facet_grid(. ~ setting) +
+             geom_hline(yintercept = 0.95, linetype = "dashed", col = "red", alpha = 0.5) +
+             ylab("coverage") + xlab("") +
+             theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+                   strip.text = element_text(size = 10),
+                   strip.background = element_blank()),
+             ggplot(tmle.results) + theme_bw() +
+             geom_point(aes(x = initial, y = as.numeric(sd.tmle)/as.numeric(se.tmle)), shape = 4) +
+             facet_grid(. ~ setting) +
+             geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
+             ylab("SD/SE") + xlab("") +
+             theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+                   strip.text = element_text(size = 10),
+                   strip.background = element_blank()),
+             ggplot(tmle.results) + theme_bw() + 
+             geom_point(aes(x = initial, y = as.numeric(mse.tmle)/as.numeric(mse.km)), shape = 4) +
+             facet_grid(. ~ setting) +
+             geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
+             ylab("MSE/MSE(KM)") + xlab("") +
+             theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+                   strip.text = element_text(size = 10),  
+                   strip.background = element_blank()),
+             ncol=1)
 #+END_SRC
 
-#+RESULTS[(2022-07-21 09:57:57) e0f7fcdee9738424abf8a0945048b0d3320bd31b]:
+#+RESULTS[(2022-07-21 16:07:51) 132e10da4fd1b32c29a2f5ed189119c45a2a5844]:
 [[file:./simulation/output/simultation-results.png]]
 
 [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#web-appendix][Back to top]]
@@ -225,7 +226,7 @@ tmle.results[, mse.km := na.locf(mse.km), by = setting]
 *** More results for survtmle
 
 #+BEGIN_SRC R :results file graphics :file ./simulation/output/survtmle-results.png :exports none :session *R* :cache yes :height 1100 :width 500
-grid.arrange(ggplot(survtmle.results) + theme_bw() + 
+grid.arrange(ggplot(survtmle.results) + theme_bw() +   
              geom_point(aes(x = grid.length.used, y = as.numeric(bias.survtmle)), shape = 4) + 
              facet_grid(initial ~ setting) +
              geom_hline(yintercept = 0, linetype = "dashed", col = "red", alpha = 0.5) +
@@ -248,7 +249,7 @@ grid.arrange(ggplot(survtmle.results) + theme_bw() +
                    strip.background = element_blank())) 
 #+END_SRC
 
-#+RESULTS[(2022-07-21 09:58:50) eaba787ea1885eb709e9413f11bc89d01023ed5d]:
+#+RESULTS[(2022-07-21 16:07:53) 6dd97e0ec4c333fc0320db02080f96820d7927aa]:
 [[file:./simulation/output/survtmle-results.png]]
 
 [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#web-appendix][Back to top]]
@@ -352,13 +353,13 @@ bhazs.long[, chemo:=paste0("chemo = ", chemo)]
 ggplot(bhazs.long) + geom_point(aes(x=log(time), y=log(value))) +
   facet_grid(chemo~status, scales="free")+theme_bw()+
   theme(axis.text=element_text(size=12),axis.title=element_text(size=18),legend.position="none",
-        strip.text = element_text(size=16), 
+        strip.text = element_text(size=16),  
         plot.title = element_text(size = 16, hjust = 0.9),  
         strip.background = element_blank())+ 
   ylab("log(chaz)") + ggtitle("Log cumulative hazards as functions of log observed event times:")
 #+END_SRC
 
-#+RESULTS[(2022-07-18 09:46:32) 6e21f32690012f3f05b1a2c3c0cfa3d81a63eebc]:
+#+RESULTS[(2022-08-01 09:04:16) bd626a42b0eeb6a76e56437ec89fa217f4373ca3]:
 [[file:./figures/fig-log-hazards-log-time.png]]
 
 Idea: Fit Weibull distributions that are allowed change over time,
@@ -368,7 +369,7 @@ corresponding to enforcing piecewise linearity in the previous plots.
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time-hazard1-changepoint.png :exports none :session *R* :cache yes :width 500 :height 500
 log.t0.1 <- -0.5 
-log.t1.1 <- 0.75   
+log.t1.1 <- 0.75    
 log.t2.1 <- 2 
 
 kmin.1.t1.1 <- min((1:nrow(bhazs[chaz1>0 & chemo==1]))[log(bhazs[chaz1>0 & chemo==1][["time"]])>log.t0.1])
@@ -423,7 +424,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) + geom_point(aes(x=l
   ylab("log(chaz)") + ggtitle("Fitting two straight lines:")
 #+END_SRC
 
-#+RESULTS[(2022-07-18 09:46:36) df3167fd31e86f97407caf4d9b8c015c31c2e091]:
+#+RESULTS[(2022-08-01 09:04:19) 8cad2c9d50a9f520ca7e0cd2e7ead59cd7cea2c6]:
 [[file:./figures/fig-log-hazards-log-time-hazard1-changepoint.png]]
 
 
@@ -436,7 +437,7 @@ bhazs.long[time>=exp(log.t1.1) & chemo=="chemo = 1" & status=="status = 1",
            fit.chaz:=exp(gamma.status1.t2.1*log(lambda.status1.t2.1) + gamma.status1.t2.1*log(time))]
 bhazs.long[time>=exp(log.t1.1) & chemo=="chemo = 0" & status=="status = 1",
            fit.chaz:=exp(gamma.status1.t2.0*log(lambda.status1.t2.0) + gamma.status1.t2.0*log(time))]
- 
+  
 ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) +
   geom_point(aes(x=time, y=value)) + 
   geom_line(aes(time, y=fit.chaz), col="red")+
@@ -448,7 +449,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) +
   ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:") 
 #+END_SRC
 
-#+RESULTS[(2022-07-18 09:46:39) b9676aa6e9a48362dfa86be4b6059febe59bac3b]:
+#+RESULTS[(2022-08-01 09:04:23) 2e04c1d31b7b61e2d3267e738efcb132e5893f12]:
 [[file:./figures/fig-hazards-time-hazard1-changepoint.png]]
 
 *** Cause one events (add changepoint)
@@ -457,7 +458,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) +
 bhazs <- bhaz.cox[[1]]   
  
 bhazs[, chaz1 := cumsum(dhaz1*exp1), by = "chemo"]
-bhazs[, chaz2 := cumsum(dhaz2*exp2), by = "chemo"] 
+bhazs[, chaz2 := cumsum(dhaz2*exp2), by = "chemo"]  
 bhazs[, chaz0 := cumsum(dhaz0*exp0), by = "chemo"]
 
 bhazs.long <- melt(bhazs, id.vars=c("chemo", "time")) 
@@ -543,7 +544,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) + geom_point(aes(x=l
 
 #+END_SRC
 
-#+RESULTS[(2022-07-18 09:46:41) 6ad7de7dbb0dfc0e9aa25a2b6a8bd831762c2969]:
+#+RESULTS[(2022-08-01 09:04:25) 2958c1859911c95ac6b29db931aaffdd1a1bddd3]:
 [[file:./figures/fig-log-hazards-log-time-hazard1-2changepoints.png]]
 
 
@@ -562,7 +563,7 @@ bhazs.long[time>=exp(log.t2.1) & time<=exp(log.t3.1) & chemo=="chemo = 0" & stat
            fit.chaz:=exp(gamma.status1.t3.0*log(lambda.status1.t3.0) + gamma.status1.t3.0*log(time))]
  
 ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) +
-  geom_point(aes(x=time, y=value)) +
+  geom_point(aes(x=time, y=value)) + 
   geom_line(aes(time, y=fit.chaz), col="red")+
   facet_grid(chemo~status, scales="free")+theme_bw()+
   theme(axis.text=element_text(size=12),axis.title=element_text(size=18),legend.position="none",
@@ -572,7 +573,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) +
   ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:") 
 #+END_SRC
 
-#+RESULTS[(2022-07-18 09:46:43) 0304ea12d3f5823e77fcba43d8d4cbba68776d57]:
+#+RESULTS[(2022-08-01 09:04:30) 7fc9832417a84c5b9e2adc7e70d9b4d9185d41a9]:
 [[file:./figures/fig-hazards-time-hazard1-2changepoints.png]]
 
 
@@ -584,7 +585,7 @@ bhazs <- bhaz.cox[[1]]
 bhazs[, chaz1 := cumsum(dhaz1*exp1), by = "chemo"]
 bhazs[, chaz2 := cumsum(dhaz2*exp2), by = "chemo"] 
 bhazs[, chaz0 := cumsum(dhaz0*exp0), by = "chemo"]
-
+ 
 bhazs.long <- melt(bhazs, id.vars=c("chemo", "time"))  
 bhazs.long[, variable2:=substr(variable,1,4)] 
 bhazs.long <- bhazs.long[variable2=="chaz"][, status:=paste0("status = ", gsub("chaz", "", variable))]
@@ -688,12 +689,12 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) + geom_point(aes(x=l
 
 #+END_SRC
 
-#+RESULTS[(2022-07-18 09:46:45) 93b32676e648ea4fbfd128cda71c4f7803cd973d]:
+#+RESULTS[(2022-08-01 09:04:33) 17501ee7b1334f729f104a5ce1810c118416f29e]:
 [[file:./figures/fig-log-hazards-log-time-hazard1-3changepoints.png]]
 
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-hazards-time-hazard1-3changepoints.png :exports none :session *R* :cache yes :width 500 :height 500
-bhazs.long[time<=exp(log.t1.1) & chemo=="chemo = 1" & status=="status = 1",     
+bhazs.long[time<=exp(log.t1.1) & chemo=="chemo = 1" & status=="status = 1",      
            fit.chaz:=exp(gamma.status1.t1.1*log(lambda.status1.t1.1) + gamma.status1.t1.1*log(time))]
 bhazs.long[time<=exp(log.t1.1) & chemo=="chemo = 0" & status=="status = 1",
            fit.chaz:=exp(gamma.status1.t1.0*log(lambda.status1.t1.0) + gamma.status1.t1.0*log(time))]
@@ -721,9 +722,42 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) +
   ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:") 
 #+END_SRC
 
-#+RESULTS[(2022-07-18 09:46:48) 40713c2fc0860c1cccd6879f9548940c9e2133bc]:
+#+RESULTS[(2022-08-01 09:04:37) c6b8e4f6b9bea74b798e22e720643573d258fbe5]:
 [[file:./figures/fig-hazards-time-hazard1-3changepoints.png]]
 
+
+
+#+BEGIN_SRC R :results file graphics :file ./figures/fig-hazards-time-hazard1-3changepoints-together.png :exports none :session *R* :cache yes :width 500 :height 500
+bhazs.long[time<=exp(log.t1.1) & chemo=="chemo = 1" & status=="status = 1",      
+           fit.chaz:=exp(gamma.status1.t1.1*log(lambda.status1.t1.1) + gamma.status1.t1.1*log(time))]
+bhazs.long[time<=exp(log.t1.1) & chemo=="chemo = 0" & status=="status = 1",
+           fit.chaz:=exp(gamma.status1.t1.0*log(lambda.status1.t1.0) + gamma.status1.t1.0*log(time))]
+bhazs.long[time>=exp(log.t1.1) & time<=exp(log.t2.1) & chemo=="chemo = 1" & status=="status = 1",
+           fit.chaz:=exp(gamma.status1.t2.1*log(lambda.status1.t2.1) + gamma.status1.t2.1*log(time))]
+bhazs.long[time>=exp(log.t1.1) & time<=exp(log.t2.1) & chemo=="chemo = 0" & status=="status = 1",
+           fit.chaz:=exp(gamma.status1.t2.0*log(lambda.status1.t2.0) + gamma.status1.t2.0*log(time))]
+bhazs.long[time>=exp(log.t2.1) & time<=exp(log.t3.1) & chemo=="chemo = 1" & status=="status = 1",
+           fit.chaz:=exp(gamma.status1.t3.1*log(lambda.status1.t3.1) + gamma.status1.t3.1*log(time))]
+bhazs.long[time>=exp(log.t2.1) & time<=exp(log.t3.1) & chemo=="chemo = 0" & status=="status = 1",
+           fit.chaz:=exp(gamma.status1.t3.0*log(lambda.status1.t3.0) + gamma.status1.t3.0*log(time))]
+bhazs.long[time>=exp(log.t3.1) & time<=exp(log.t4.1) & chemo=="chemo = 1" & status=="status = 1",
+           fit.chaz:=exp(gamma.status1.t4.1*log(lambda.status1.t4.1) + gamma.status1.t4.1*log(time))]
+bhazs.long[time>=exp(log.t3.1) & time<=exp(log.t4.1) & chemo=="chemo = 0" & status=="status = 1",
+           fit.chaz:=exp(gamma.status1.t4.0*log(lambda.status1.t4.0) + gamma.status1.t4.0*log(time))]
+ 
+ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) +
+  #geom_point(aes(x=time, y=value)) +
+  geom_line(aes(time, y=fit.chaz, linetype=chemo))+
+  facet_grid(.~status, scales="free")+theme_bw()+
+  theme(axis.text=element_text(size=12),axis.title=element_text(size=18),
+        strip.text = element_text(size=16), 
+        plot.title = element_text(size = 16, hjust = -0.3),
+        strip.background = element_blank())+
+  ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:") 
+#+END_SRC
+
+#+RESULTS[(2022-08-01 09:08:48) f2e93914ddc7c1c7d05dc036dd76911dfb9b609c]:
+[[file:./figures/fig-hazards-time-hazard1-3changepoints-together.png]]
 
 [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#web-appendix][Back to top]]
 
@@ -733,7 +767,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) +
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time-hazard2-changepoint.png :exports none :session *R* :cache yes :width 500 :height 500
 log.t0.2 <- 0      
 log.t1.2 <- 1.5 
-log.t2.2 <- 3  
+log.t2.2 <- 3   
 
 kmin.2.t1.1 <- min((1:nrow(bhazs[chaz2>0 & chemo==1]))[log(bhazs[chaz2>0 & chemo==1][["time"]])>log.t0.2])
 kmax.2.t1.1 <- max((1:nrow(bhazs[chaz2>0 & chemo==1]))[log(bhazs[chaz2>0 & chemo==1][["time"]])<log.t1.2])
@@ -786,7 +820,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 2"]) + geom_point(aes(x=l
   ylab("log(chaz)") + ggtitle("Fitting two straight lines:")
 #+END_SRC
 
-#+RESULTS[(2022-07-18 09:46:50) 7aaddbbfcacbfc9a32c7a4adf116ff54f9b4d990]:
+#+RESULTS[(2022-08-01 09:07:12) bae5109fc02836aee8111fb4cc63d54ae51d9166]:
 [[file:./figures/fig-log-hazards-log-time-hazard2-changepoint.png]]
 
 
@@ -801,7 +835,7 @@ bhazs.long[time>=exp(log.t1.2) & chemo=="chemo = 1" & status=="status = 2",
 bhazs.long[time>=exp(log.t1.2) & chemo=="chemo = 0" & status=="status = 2",
            fit.chaz:=exp(gamma.status2.t2.0*log(lambda.status2.t2.0) + gamma.status2.t2.0*log(time))]
   
-ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 2"]) +  
+ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 2"]) +   
   geom_point(aes(x=time, y=value)) +
   geom_line(aes(time, y=fit.chaz), col="red")+
   facet_grid(chemo~status, scales="free")+theme_bw()+
@@ -812,7 +846,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 2"]) +
   ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:")
 #+END_SRC
 
-#+RESULTS[(2022-07-18 09:46:52) 61f804f5d3547909a1d3a224a521e7cc28cf3021]:
+#+RESULTS[(2022-08-01 09:07:15) 398a210d383cbf8902ea2ce5318ae42ac6a69b6f]:
 [[file:./figures/fig-hazards-time-hazard2-changepoint.png]]
 
 *** Cause two events (add changepoint)
@@ -821,7 +855,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 2"]) +
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time-hazard2-2changepoints.png :exports none :session *R* :cache yes :width 500 :height 500
 bhazs <- bhaz.cox[[1]]   
  
-bhazs[, chaz1 := cumsum(dhaz1*exp1), by = "chemo"]
+bhazs[, chaz1 := cumsum(dhaz1*exp1), by = "chemo"] 
 bhazs[, chaz2 := cumsum(dhaz2*exp2), by = "chemo"]
 bhazs[, chaz0 := cumsum(dhaz0*exp0), by = "chemo"]
  
@@ -906,7 +940,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 2"]) + geom_point(aes(x=l
   ylab("log(chaz)") + ggtitle("Fitting three straight lines:")
 #+END_SRC
 
-#+RESULTS[(2022-07-18 09:46:54) f08f08a15ee57f0353b88cb59c706dddc5a59eed]:
+#+RESULTS[(2022-08-01 09:07:17) 08aa078090e4d49fd0343a7a5fe998c40d210d8c]:
 [[file:./figures/fig-log-hazards-log-time-hazard2-2changepoints.png]]
 
 
@@ -925,7 +959,7 @@ bhazs.long[time>=exp(log.t2.2) & chemo=="chemo = 1" & status=="status = 2",
 bhazs.long[time>=exp(log.t2.2) & chemo=="chemo = 0" & status=="status = 2",
            fit.chaz:=exp(gamma.status2.t3.0*log(lambda.status2.t3.0) + gamma.status2.t3.0*log(time))]
  
-ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 2"]) +  
+ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 2"]) +   
   geom_point(aes(x=time, y=value)) +
   geom_line(aes(time, y=fit.chaz), col="red")+
   facet_grid(chemo~status, scales="free")+theme_bw()+
@@ -936,8 +970,39 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 2"]) +
   ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:")
 #+END_SRC
 
-#+RESULTS[(2022-07-18 09:46:57) 96e1d24bad0b28f3a6a7c4b2bfe27fb144e21b30]:
+#+RESULTS[(2022-08-01 09:07:23) a819beb4c63bf77e6b7e9a8dc88a1ed3e63b7b64]:
 [[file:./figures/fig-hazards-time-hazard2-2changepoints.png]]
+
+
+
+#+BEGIN_SRC R :results file graphics :file ./figures/fig-hazards-time-hazard2-2changepoints-together.png :exports none :session *R* :cache yes :width 500 :height 500
+bhazs.long[time<=exp(log.t1.2) & chemo=="chemo = 1" & status=="status = 2",   
+           fit.chaz:=exp(gamma.status2.t1.1*log(lambda.status2.t1.1) + gamma.status2.t1.1*log(time))]
+bhazs.long[time<=exp(log.t1.2) & chemo=="chemo = 0" & status=="status = 2", 
+           fit.chaz:=exp(gamma.status2.t1.0*log(lambda.status2.t1.0) + gamma.status2.t1.0*log(time))]
+bhazs.long[time>=exp(log.t1.2) & time<=exp(log.t2.2) & chemo=="chemo = 1" & status=="status = 2",
+           fit.chaz:=exp(gamma.status2.t2.1*log(lambda.status2.t2.1) + gamma.status2.t2.1*log(time))]
+bhazs.long[time>=exp(log.t1.2) & time<=exp(log.t2.2) & chemo=="chemo = 0" & status=="status = 2",
+           fit.chaz:=exp(gamma.status2.t2.0*log(lambda.status2.t2.0) + gamma.status2.t2.0*log(time))]
+bhazs.long[time>=exp(log.t2.2) & chemo=="chemo = 1" & status=="status = 2",
+           fit.chaz:=exp(gamma.status2.t3.1*log(lambda.status2.t3.1) + gamma.status2.t3.1*log(time))]
+bhazs.long[time>=exp(log.t2.2) & chemo=="chemo = 0" & status=="status = 2",
+           fit.chaz:=exp(gamma.status2.t3.0*log(lambda.status2.t3.0) + gamma.status2.t3.0*log(time))]
+ 
+ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 2"]) +
+  #geom_point(aes(x=time, y=value)) +
+  geom_line(aes(time, y=fit.chaz, linetype=chemo))+
+  facet_grid(.~status, scales="free")+theme_bw()+
+  theme(axis.text=element_text(size=12),axis.title=element_text(size=18),
+        strip.text = element_text(size=16), 
+        plot.title = element_text(size = 16, hjust = -0.3),
+        strip.background = element_blank())+
+  ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:") 
+#+END_SRC
+
+#+RESULTS[(2022-08-01 09:08:33) 2f5c1be55b73e9195a58654c2b401aa218bf1ab7]:
+[[file:./figures/fig-hazards-time-hazard2-2changepoints-together.png]]
+
 
 [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#web-appendix][Back to top]]
 
@@ -945,7 +1010,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 2"]) +
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time-hazard0-changepoint.png :exports none :session *R* :cache yes :width 500 :height 500
 log.t0.0 <- 1.2   
-log.t1.0 <- 1.9    
+log.t1.0 <- 1.9     
 log.t2.0 <- 3.2 
 
 kmin.0.t1.1 <- min((1:nrow(bhazs[chaz0>0 & chemo==1]))[log(bhazs[chaz0>0 & chemo==1][["time"]])>log.t0.0])
@@ -999,7 +1064,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 0"]) + geom_point(aes(x=l
   ylab("log(chaz)") + ggtitle("Fitting two straight lines:")
 #+END_SRC
 
-#+RESULTS[(2022-07-18 09:46:59) 23ce22695c770b23fc5a5f1342ca2a08fecb82c9]:
+#+RESULTS[(2022-08-01 09:08:55) 8374e1706c76134c7f61153cc62fae6b875108b2]:
 [[file:./figures/fig-log-hazards-log-time-hazard0-changepoint.png]]
 
 
@@ -1013,7 +1078,7 @@ bhazs.long[time>=exp(log.t1.0) & chemo=="chemo = 1" & status=="status = 0",
            fit.chaz:=exp(gamma.status0.t2.1*log(lambda.status0.t2.1) + gamma.status0.t2.1*log(time))]
 bhazs.long[time>=exp(log.t1.0) & chemo=="chemo = 0" & status=="status = 0",
            fit.chaz:=exp(gamma.status0.t2.0*log(lambda.status0.t2.0) + gamma.status0.t2.0*log(time))]
- 
+  
 ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 0"]) + 
   geom_point(aes(x=time, y=value)) +
   geom_line(aes(time, y=fit.chaz), col="red")+
@@ -1025,7 +1090,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 0"]) +
   ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:")
 #+END_SRC
 
-#+RESULTS[(2022-07-18 09:47:01) 149107bcf55080ad9ddcc3c5f5b0f6ac2dd9aad9]:
+#+RESULTS[(2022-08-01 09:08:59) 8cb911a567dd798b5b70bbde108c26887603f7d8]:
 [[file:./figures/fig-hazards-time-hazard0-changepoint.png]]
 
 
@@ -1034,7 +1099,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 0"]) +
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time-hazard0-2changepoints.png :exports none :session *R* :cache yes :width 500 :height 500
 bhazs <- bhaz.cox[[1]]  
-  
+   
 bhazs[, chaz1 := cumsum(dhaz1*exp1), by = "chemo"]
 bhazs[, chaz2 := cumsum(dhaz2*exp2), by = "chemo"]
 bhazs[, chaz0 := cumsum(dhaz0*exp0), by = "chemo"]
@@ -1121,7 +1186,7 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 0"]) + geom_point(aes(x=l
   ylab("log(chaz)") + ggtitle("Fitting three straight lines:")
 #+END_SRC
 
-#+RESULTS[(2022-07-18 09:47:04) b4b33abbc3e00cbb351f61c356769f942bdbe329]:
+#+RESULTS[(2022-08-01 09:09:01) df0e12351d0aff9d8c00d00ee7a054a0416ea336]:
 [[file:./figures/fig-log-hazards-log-time-hazard0-2changepoints.png]]
 
 
@@ -1140,7 +1205,7 @@ bhazs.long[time>=exp(log.t2.0) & chemo=="chemo = 0" & status=="status = 0",
                               fit.chaz:=exp(gamma.status0.t3.0*log(lambda.status0.t3.0) + gamma.status0.t3.0*log(time))]
  
 ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 0"]) + 
-  geom_point(aes(x=time, y=value)) + 
+  geom_point(aes(x=time, y=value)) +  
   geom_line(aes(time, y=fit.chaz), col="red")+
   facet_grid(chemo~status, scales="free")+theme_bw()+
   theme(axis.text=element_text(size=12),axis.title=element_text(size=18),legend.position="none",
@@ -1150,17 +1215,46 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 0"]) +
   ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:")
 #+END_SRC
 
-#+RESULTS[(2022-07-18 09:47:06) e27afbfdd29b08e93954f481f8a64f22d5b74888]:
+#+RESULTS[(2022-08-01 09:09:05) 712394d2906f03f793c239d7658619f6c75a98cc]:
 [[file:./figures/fig-hazards-time-hazard0-2changepoints.png]]
+
+
+#+BEGIN_SRC R :results file graphics :file ./figures/fig-hazards-time-hazard0-2changepoints-together.png :exports none :session *R* :cache yes :width 500 :height 500
+bhazs.long[time<=exp(log.t1.0) & chemo=="chemo = 1" & status=="status = 0",     
+                              fit.chaz:=exp(gamma.status0.t1.1*log(lambda.status0.t1.1) + gamma.status0.t1.1*log(time))]
+bhazs.long[time<=exp(log.t1.0) & chemo=="chemo = 0" & status=="status = 0",
+                              fit.chaz:=exp(gamma.status0.t1.0*log(lambda.status0.t1.0) + gamma.status0.t1.0*log(time))]
+bhazs.long[time>=exp(log.t1.0) & time <= exp(log.t2.0) & chemo=="chemo = 1" & status=="status = 0",
+                              fit.chaz:=exp(gamma.status0.t2.1*log(lambda.status0.t2.1) + gamma.status0.t2.1*log(time))]
+bhazs.long[time>=exp(log.t1.0) & time <= exp(log.t2.0) & chemo=="chemo = 0" & status=="status = 0",
+                              fit.chaz:=exp(gamma.status0.t2.0*log(lambda.status0.t2.0) + gamma.status0.t2.0*log(time))]
+bhazs.long[time>=exp(log.t2.0) & chemo=="chemo = 1" & status=="status = 0",
+                              fit.chaz:=exp(gamma.status0.t3.1*log(lambda.status0.t3.1) + gamma.status0.t3.1*log(time))]
+bhazs.long[time>=exp(log.t2.0) & chemo=="chemo = 0" & status=="status = 0",
+                              fit.chaz:=exp(gamma.status0.t3.0*log(lambda.status0.t3.0) + gamma.status0.t3.0*log(time))]
+ 
+ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 0"]) +
+  #geom_point(aes(x=time, y=value)) +
+  geom_line(aes(time, y=fit.chaz, linetype=chemo))+
+  facet_grid(.~status, scales="free")+theme_bw()+
+  theme(axis.text=element_text(size=12),axis.title=element_text(size=18),
+        strip.text = element_text(size=16), 
+        plot.title = element_text(size = 16, hjust = -0.3), 
+        strip.background = element_blank())+
+  ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:") 
+#+END_SRC
+
+#+RESULTS[(2022-08-01 09:12:26) dd52778ebb264ab741586843c4c59eafb11a5a36]:
+[[file:./figures/fig-hazards-time-hazard0-2changepoints-together.png]]
 
 [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#web-appendix][Back to top]]
 
 *** Censoring events (independent)
 
 #+BEGIN_SRC R :results file graphics :file ./figures/fig-log-hazards-log-time-hazard0-independent.png :exports none :session *R* :cache yes :width 500 :height 500
-bhazs.uninformative.cens <- bhaz.uninformative.cens[[1]]    
+bhazs.uninformative.cens <- bhaz.uninformative.cens[[1]]     
 bhazs.uninformative.cens[, chaz0 := cumsum(dhaz0*exp0), by = "chemo"] 
- 
+  
 bhazs.uninformative.cens.long <- melt(bhazs.uninformative.cens, id.vars=c("chemo", "time")) 
 bhazs.uninformative.cens.long[, variable2:=substr(variable,1,4)] 
 bhazs.uninformative.cens.long <- bhazs.uninformative.cens.long[variable2=="chaz"][, status:=paste0("status = ", gsub("chaz", "", variable))]
@@ -1222,7 +1316,7 @@ ggplot(bhazs.uninformative.cens.long[!is.na(fit.chaz) & status=="status = 0"]) +
   ylab("log(chaz)") + ggtitle("Fitting a single straight line:")
 #+END_SRC
 
-#+RESULTS[(2022-07-18 09:47:07) d5de37f6ebd995448d56f1534221ade3366a95e4]:
+#+RESULTS[(2022-08-01 09:10:57) dfa511ba7d2764e6f5098cc32f23942301587120]:
 [[file:./figures/fig-log-hazards-log-time-hazard0-independent.png]]
 
 
@@ -1231,7 +1325,7 @@ bhazs.uninformative.cens.long[chemo=="chemo = 1" & status=="status = 0",
            fit.chaz:=exp(gamma.status0.independent.1*log(lambda.status0.independent.1) + gamma.status0.independent.1*log(time))]
 bhazs.uninformative.cens.long[chemo=="chemo = 0" & status=="status = 0",
            fit.chaz:=exp(gamma.status0.independent.0*log(lambda.status0.independent.0) + gamma.status0.independent.0*log(time))]
- 
+  
 ggplot(bhazs.uninformative.cens.long[!is.na(fit.chaz) & status=="status = 0"]) + 
   geom_point(aes(x=time, y=value)) +
   geom_line(aes(time, y=fit.chaz), col="red")+
@@ -1243,7 +1337,7 @@ ggplot(bhazs.uninformative.cens.long[!is.na(fit.chaz) & status=="status = 0"]) +
   ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:")
 #+END_SRC
 
-#+RESULTS[(2022-07-18 09:47:10) e58bc648f467f69cc2a69ce19e0ccb00cc95d7a3]:
+#+RESULTS[(2022-08-01 09:11:00) 2cd57a31f9900a1d8e14c24105793f3d2d2dea53]:
 [[file:./figures/fig-hazards-time-hazard0-independent.png]]
 
 
@@ -1257,7 +1351,7 @@ bhazs.uninformative.cens.long <- melt(bhazs.uninformative.cens, id.vars=c("chemo
 bhazs.uninformative.cens.long[, variable2:=substr(variable,1,4)] 
 bhazs.uninformative.cens.long <- bhazs.uninformative.cens.long[variable2=="chaz"][, status:=paste0("status = ", gsub("chaz", "", variable))]
 bhazs.uninformative.cens.long[, chemo:=paste0("chemo = ", chemo)]
- 
+  
 log.t0.0 <- 1.2
 log.t1.0 <- 1.9    
 log.t2.0 <- 3.5
@@ -1313,7 +1407,7 @@ ggplot(bhazs.uninformative.cens.long[!is.na(fit.chaz) & status=="status = 0"]) +
   ylab("log(chaz)") + ggtitle("Fitting two straight lines:")
 #+END_SRC
 
-#+RESULTS[(2022-07-18 09:47:13) f4f900f58826aa68ccaf25ee791ff3c75824ba0e]:
+#+RESULTS[(2022-08-01 09:11:02) 2264c67bdbd9b73b11847fc3cd72ecebb73593b4]:
 [[file:./figures/fig-log-hazards-log-time-hazard0-independent-changepoint.png]]
 
 
@@ -1326,7 +1420,7 @@ bhazs.uninformative.cens.long[time>=exp(log.t1.0) & chemo=="chemo = 1" & status=
            fit.chaz:=exp(gamma.status0.independent.t2.1*log(lambda.status0.independent.t2.1) + gamma.status0.independent.t2.1*log(time))]
 bhazs.uninformative.cens.long[time>=exp(log.t1.0) & chemo=="chemo = 0" & status=="status = 0",
            fit.chaz:=exp(gamma.status0.independent.t2.0*log(lambda.status0.independent.t2.0) + gamma.status0.independent.t2.0*log(time))]
-  
+   
 ggplot(bhazs.uninformative.cens.long[!is.na(fit.chaz) & status=="status = 0"]) + 
   geom_point(aes(x=time, y=value)) +
   geom_line(aes(time, y=fit.chaz), col="red")+
@@ -1338,7 +1432,7 @@ ggplot(bhazs.uninformative.cens.long[!is.na(fit.chaz) & status=="status = 0"]) +
   ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:")
 #+END_SRC
 
-#+RESULTS[(2022-07-18 09:47:14) 12805702a58cce160a9ac27879da883403b196e0]:
+#+RESULTS[(2022-08-01 09:11:05) 2079407044c74df2eaf82b1a298c10b2ec3ee366]:
 [[file:./figures/fig-hazards-time-hazard0-independent-changepoint.png]]
 
 
@@ -1354,7 +1448,7 @@ bhazs.uninformative.cens.long[, variable2:=substr(variable,1,4)]
 bhazs.uninformative.cens.long <- bhazs.uninformative.cens.long[variable2=="chaz"][, status:=paste0("status = ", gsub("chaz", "", variable))]
 bhazs.uninformative.cens.long[, chemo:=paste0("chemo = ", chemo)]
 
-log.t0.0 <- 1.2
+log.t0.0 <- 1.2 
 log.t1.0 <- 1.9   
 log.t2.0 <- 3.2
 log.t3.0 <- 3.5
@@ -1431,7 +1525,7 @@ ggplot(bhazs.uninformative.cens.long[!is.na(fit.chaz) & status=="status = 0"]) +
   ylab("log(chaz)") + ggtitle("Fitting three straight lines:")
 #+END_SRC
 
-#+RESULTS[(2022-07-18 09:47:17) 16c05e7e8eb7f3bdde7ec8ade500bc07b59a9ec0]:
+#+RESULTS[(2022-08-01 09:11:07) 392dbd52804de93b007502c0d036d605dbc42ba2]:
 [[file:./figures/fig-log-hazards-log-time-hazard0-independent-2changepoints.png]]
 
 
@@ -1448,7 +1542,7 @@ bhazs.uninformative.cens.long[time>=exp(log.t2.0) & chemo=="chemo = 1" & status=
                               fit.chaz:=exp(gamma.status0.independent.t3.1*log(lambda.status0.independent.t3.1) + gamma.status0.independent.t3.1*log(time))]
 bhazs.uninformative.cens.long[time>=exp(log.t2.0) & chemo=="chemo = 0" & status=="status = 0",
                               fit.chaz:=exp(gamma.status0.independent.t3.0*log(lambda.status0.independent.t3.0) + gamma.status0.independent.t3.0*log(time))]
- 
+  
 ggplot(bhazs.uninformative.cens.long[!is.na(fit.chaz) & status=="status = 0"]) + 
   geom_point(aes(x=time, y=value)) +
   geom_line(aes(time, y=fit.chaz), col="red")+
@@ -1460,8 +1554,38 @@ ggplot(bhazs.uninformative.cens.long[!is.na(fit.chaz) & status=="status = 0"]) +
   ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:") 
 #+END_SRC
 
-#+RESULTS[(2022-07-18 09:47:19) ffe418cc5ab5c87b605e9ca969350d58142c7519]:
+#+RESULTS[(2022-08-01 09:11:10) 38ad9bb4ea53782a7a6358730cefad6e87498185]:
 [[file:./figures/fig-hazards-time-hazard0-independent-2changepoints.png]]
+
+
+
+#+BEGIN_SRC R :results file graphics :file ./figures/fig-hazards-time-hazard0-independent-2changepoints-together.png :exports none :session *R* :cache yes :width 500 :height 500
+bhazs.uninformative.cens.long[time<=exp(log.t1.0) & chemo=="chemo = 1" & status=="status = 0",    
+                              fit.chaz:=exp(gamma.status0.independent.t1.1*log(lambda.status0.independent.t1.1) + gamma.status0.independent.t1.1*log(time))]
+bhazs.uninformative.cens.long[time<=exp(log.t1.0) & chemo=="chemo = 0" & status=="status = 0",
+                              fit.chaz:=exp(gamma.status0.independent.t1.0*log(lambda.status0.independent.t1.0) + gamma.status0.independent.t1.0*log(time))]
+bhazs.uninformative.cens.long[time>=exp(log.t1.0) & time <= exp(log.t2.0) & chemo=="chemo = 1" & status=="status = 0",
+                              fit.chaz:=exp(gamma.status0.independent.t2.1*log(lambda.status0.independent.t2.1) + gamma.status0.independent.t2.1*log(time))]
+bhazs.uninformative.cens.long[time>=exp(log.t1.0) & time <= exp(log.t2.0) & chemo=="chemo = 0" & status=="status = 0",
+                              fit.chaz:=exp(gamma.status0.independent.t2.0*log(lambda.status0.independent.t2.0) + gamma.status0.independent.t2.0*log(time))]
+bhazs.uninformative.cens.long[time>=exp(log.t2.0) & chemo=="chemo = 1" & status=="status = 0",
+                              fit.chaz:=exp(gamma.status0.independent.t3.1*log(lambda.status0.independent.t3.1) + gamma.status0.independent.t3.1*log(time))]
+bhazs.uninformative.cens.long[time>=exp(log.t2.0) & chemo=="chemo = 0" & status=="status = 0",
+                              fit.chaz:=exp(gamma.status0.independent.t3.0*log(lambda.status0.independent.t3.0) + gamma.status0.independent.t3.0*log(time))]
+
+ggplot(bhazs.uninformative.cens.long[!is.na(fit.chaz) & status=="status = 0"]) + 
+  #geom_point(aes(x=time, y=value)) +
+  geom_line(aes(time, y=fit.chaz, linetype=chemo))+
+  facet_grid(.~status, scales="free")+theme_bw()+
+  theme(axis.text=element_text(size=12),axis.title=element_text(size=18),
+        strip.text = element_text(size=16), 
+        plot.title = element_text(size = 16, hjust = -0.1), 
+        strip.background = element_blank())+
+  ylab("chaz") + ggtitle("Resulting cumulative baseline hazards:") 
+#+END_SRC
+
+#+RESULTS[(2022-08-01 09:12:10) 6b57ea6e7aab809f5bbc9d1db453e58ac3a67807]:
+[[file:./figures/fig-hazards-time-hazard0-independent-2changepoints-together.png]]
 
 [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#web-appendix][Back to top]]
 
