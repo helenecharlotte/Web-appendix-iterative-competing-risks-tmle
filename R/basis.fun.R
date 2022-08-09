@@ -87,9 +87,15 @@ basis.fun <- function(covars, cut.one.way, dt, treatment=NULL,
                    paste0(apply(two.way, 1, function(row) {
                        if (row[1]!=row[2]) {
                            if (any(row==treatment)) {
-                               paste0("+", paste0(apply(expand.grid(ifelse(row[1]==treatment, treatment, indicator.basis.fun(dt, row[1], cut.two.way)),
-                                                                    ifelse(row[2]==treatment, treatment, indicator.basis.fun(dt, row[2], cut.two.way))), 1,
-                                                        function(row2) paste0(row2, collapse=":")), collapse="+"))
+                               if (row[1] == treatment) {
+                                   paste0("+", paste0(apply(expand.grid(treatment,
+                                                                        indicator.basis.fun(dt, row[2], cut.two.way)), 1,
+                                                            function(row2) paste0(row2, collapse=":")), collapse="+"))
+                               } else {
+                                   paste0("+", paste0(apply(expand.grid(indicator.basis.fun(dt, row[1], cut.two.way),
+                                                                        treatment), 1,
+                                                            function(row2) paste0(row2, collapse=":")), collapse="+"))
+                               }
                            } else {
                                paste0("+", paste0(apply(expand.grid(indicator.basis.fun(dt, row[1], cut.two.way),
                                                                     indicator.basis.fun(dt, row[2], cut.two.way)), 1,

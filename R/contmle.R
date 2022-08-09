@@ -61,8 +61,8 @@ contmle <- function(dt,
                     cut.time.covar=NULL,
                     cut.L.A=8, cut.two.way=5,
                     hal.sl=FALSE,
-                    cut.time.grid=5:30[seq(1,length(5:30),length=10)],
-                    cut.covar.grid=(5:30)[seq(1,length(5:30),length=10)],
+                    cut.time.grid=c(7, 10, 15, 18, 25),#(7:30)[seq(1,length(5:30),length=10)],
+                    cut.covar.grid=c(7, 10, 15, 18, 25),#(7:30)[seq(1,length(5:30),length=10)],
                     #-- maximum number of iterations in iterative tmle; 
                     maxIter=10,
                     verbose=FALSE, verbose.sl=FALSE, check.sup=FALSE,
@@ -86,6 +86,8 @@ contmle <- function(dt,
     if (verbose) verbose.sl <- TRUE
    
     not.fit.list <- list()
+
+    if (hal.sl) hal.screening <- TRUE
 
     #-- names of time variable and event (delta) variable; 
     time.var <- gsub("Surv\\(", "", unlist(strsplit(as.character(estimation[[1]][["model"]])[2], ","))[1])
@@ -778,7 +780,7 @@ contmle <- function(dt,
             } else { #--- poisson-hal
 
                 if (hal.screening) { #--- first screening
-                  
+
                     if (verbose) print(paste0("hal for event = ", fit.delta))
 
                     (one.way.screening <- hal.screening(covars=covars, dt=dt, cut.one.way=5, time.var="time",
@@ -840,13 +842,18 @@ contmle <- function(dt,
 
                         #---------------------------------------
                         #-- pick grid points for time axis
+
+                        if (verbose) {
+                            print("cut.time.grid = ")
+                            print(cut.time.grid)
+                        }
                         
                         test.cve1 <- sapply(cut.time.grid, function(cut.time) try(fit.hal(covars=one.way.screening, dt=dt,
                                                                                           cut.one.way=5,
                                                                                           time.var=time.var, cut.time=cut.time,
                                                                                           mat=mat, delta.var="delta.obs", V=V,
                                                                                           intervention=a, 
-                                                                                          verbose=FALSE,#verbose,
+                                                                                          verbose=verbose,
                                                                                           delta.value=fit.delta,
                                                                                           two.way=two.way.screening, cut.two.way=cut.two.way, 
                                                                                           penalize.treatment=FALSE, penalize.time=FALSE,
@@ -870,21 +877,33 @@ contmle <- function(dt,
 
                         #---------------------------------------
                         #-- pick grid points for main effect of covariates
-                        
-                        test.cve3 <- sapply(cut.covar.grid, function(cut.covar) fit.hal(covars=one.way.screening, dt=dt,
-                                                                                        cut.one.way=cut.covar,
-                                                                                        time.var=time.var, cut.time=cut.time.min,
-                                                                                        mat=mat, delta.var="delta.obs", V=V,
-                                                                                        intervention=a, 
-                                                                                        verbose=verbose, delta.value=fit.delta,
-                                                                                        two.way=two.way.screening, cut.two.way=cut.two.way, 
-                                                                                        penalize.treatment=FALSE, penalize.time=FALSE,
-                                                                                        predict=max(tau), treatment.prediction=A.name, 
-                                                                                        treatment="A.obs",
-                                                                                        cut.time.treatment=0,
-                                                                                        cut.time.covar=0,
-                                                                                        return.cve=TRUE)$cve$min$cve)
 
+                        if (verbose) {
+                            print("cut.covar.grid = ")
+                            print(cut.covar.grid)
+                        }
+                        
+                        test.cve3 <- sapply(cut.covar.grid, function(cut.covar) try(fit.hal(covars=one.way.screening, dt=dt,
+                                                                                            cut.one.way=cut.covar,
+                                                                                            time.var=time.var, cut.time=cut.time.min,
+                                                                                            mat=mat, delta.var="delta.obs", V=V,
+                                                                                            intervention=a, 
+                                                                                            verbose=verbose, delta.value=fit.delta,
+                                                                                            two.way=two.way.screening,
+                                                                                            cut.two.way=cut.two.way, 
+                                                                                            penalize.treatment=FALSE, penalize.time=FALSE,
+                                                                                            predict=max(tau), treatment.prediction=A.name, 
+                                                                                            treatment="A.obs",
+                                                                                            cut.time.treatment=0,
+                                                                                            cut.time.covar=0,
+                                                                                            return.cve=TRUE)$cve$min$cve))
+
+
+                        if (is.character(test.cve3[1])) {
+                            cut.covar.grid <- cut.covar.grid[substr(test.cve3,1,1)!="E"]
+                            test.cve3 <- test.cve3[substr(test.cve3,1,1)!="E"]
+                        }
+                        
                         cut.one.way.min <- (cut.covar.grid)[order(test.cve3, cut.covar.grid)][1]
 
                         if (FALSE) plot(cut.covar.grid, test.cve3)
@@ -893,23 +912,35 @@ contmle <- function(dt,
 
                         #---------------------------------------
                         #-- pick grid points for time x treatment
-                        
-                        cut.time.covar.grid <- c(0,3:cut.time.min)[seq(1,length(c(0,3:cut.time.min)),length=min(5,length(c(0,3:cut.time.min))))]
-                        
-                        test.cve2 <- sapply(cut.time.covar.grid, function(cut.time.treatment) fit.hal(covars=one.way.screening, dt=dt,
-                                                                                                      cut.one.way=cut.one.way.min,
-                                                                                                      time.var=time.var, cut.time=cut.time.min,
-                                                                                                      mat=mat, delta.var="delta.obs", V=V,
-                                                                                                      intervention=a, 
-                                                                                                      verbose=verbose, delta.value=fit.delta,
-                                                                                                      two.way=two.way.screening, cut.two.way=cut.two.way, 
-                                                                                                      penalize.treatment=FALSE, penalize.time=FALSE,
-                                                                                                      predict=max(tau), treatment.prediction=A.name, 
-                                                                                                      treatment="A.obs",
-                                                                                                      cut.time.treatment=cut.time.treatment,
-                                                                                                      cut.time.covar=0,
-                                                                                                      return.cve=TRUE)$cve$min$cve)
+                       
+                        cut.time.covar.grid <- c(0, 3, 7, 10, 15, 18, 25)#c(0,3:cut.time.min)[seq(1,length(c(0,3:cut.time.min)),length=min(5,length(c(0,3:cut.time.min))))]
+                        cut.time.covar.grid <- cut.time.covar.grid[cut.time.covar.grid <= cut.time.min]
 
+                        if (verbose) {
+                            print("cut.time.treatment.grid = ")
+                            print(cut.time.covar.grid)
+                        }                        
+                        
+                        test.cve2 <- sapply(cut.time.covar.grid, function(cut.time.treatment) try(fit.hal(covars=one.way.screening, dt=dt,
+                                                                                                          cut.one.way=cut.one.way.min,
+                                                                                                          time.var=time.var, cut.time=cut.time.min,
+                                                                                                          mat=mat, delta.var="delta.obs", V=V,
+                                                                                                          intervention=a, 
+                                                                                                          verbose=verbose, delta.value=fit.delta,
+                                                                                                          two.way=two.way.screening, cut.two.way=cut.two.way, 
+                                                                                                          penalize.treatment=FALSE, penalize.time=FALSE,
+                                                                                                          predict=max(tau), treatment.prediction=A.name, 
+                                                                                                          treatment="A.obs",
+                                                                                                          cut.time.treatment=cut.time.treatment,
+                                                                                                          cut.time.covar=0,
+                                                                                                          return.cve=TRUE)$cve$min$cve))
+
+
+                        if (is.character(test.cve2[1])) {
+                            cut.time.covar.grid <- cut.time.covar.grid[substr(test.cve2,1,1)!="E"]
+                            test.cve2 <- test.cve2[substr(test.cve2,1,1)!="E"]
+                        }
+                        
                         cut.time.treatment.min <- cut.time.covar.grid[order(test.cve2, cut.time.covar.grid)][1]
 
                         if (verbose) print(paste0("cut.time.treatment.min = ", cut.time.treatment.min))
@@ -918,6 +949,13 @@ contmle <- function(dt,
 
                         #---------------------------------------
                         #-- pick grid points for effect of time x covariates 
+
+                        if (verbose) {
+                            print("cut.time.covar.grid = ")
+                            print(cut.time.covar.grid)
+                            print("cut.covar = ")
+                            print((c(5:cut.one.way.min))[seq(1, length(c(5:cut.one.way.min)), length=min(5,length(c(5:cut.one.way.min))))])
+                        }   
                         
                         time.covar <- expand.grid(grid.time = cut.time.covar.grid,
                                                   grid.covar = (c(5:cut.one.way.min))[seq(1, length(c(5:cut.one.way.min)), length=min(5,length(c(5:cut.one.way.min))))])
@@ -941,7 +979,7 @@ contmle <- function(dt,
                         #time.covar[order(test.cve4, time.covar[,"grid.time"], time.covar[,"grid.covar"]), ]
                                 
                         if (FALSE) {
-                            par(mfrow = c(2,3))
+                            par(mfrow = c(3,3))
                             for (cut.covar in (c(5:cut.one.way.min))[seq(1, length(c(5:cut.one.way.min)), length=min(5,length(c(5:cut.one.way.min))))])
                                 plot(time.covar[,"grid.time"][time.covar[, "grid.covar"] == cut.covar],
                                      test.cve4[time.covar[, "grid.covar"] == cut.covar])
@@ -958,10 +996,18 @@ contmle <- function(dt,
 
                         #---------------------------------------
                         #-- pick grid points for effect of covariates x covariates (treatment)
+
+                        #cut.two.way.grid <- c(0,3:cut.one.way.min)[seq(1,length(c(0,3:cut.one.way.min)),length=min(5,length(c(0,3:cut.one.way.min))))]
+                        cut.two.way.grid <- c(0, 3, 7, 10, 15, 18, 25)
+                        cut.two.way.grid <- cut.two.way.grid[cut.two.way.grid <= cut.one.way.min]
                         
-                        cut.two.way.grid <- c(0,3:cut.one.way.min)[seq(1,length(c(0,3:cut.one.way.min)),length=min(5,length(c(0,3:cut.one.way.min))))]
+                        if (verbose) {
+                            print("cut.two.way.grid = ")
+                            print(cut.two.way.grid)
+                        }
+                        
                         test.cve5 <- sapply(cut.two.way.grid,
-                                            function(cut.two.way) fit.hal(covars=one.way.screening, dt=dt,
+                                            function(cut.two.way) try(fit.hal(covars=one.way.screening, dt=dt,
                                                                            cut.one.way=cut.one.way.min,
                                                                            time.var=time.var,
                                                                            cut.time=cut.time.min,
@@ -975,8 +1021,13 @@ contmle <- function(dt,
                                                                            cut.time.treatment=cut.time.treatment.min,
                                                                            cut.time.covar=time.covar[cut.time.covar.min.jj, "grid.time"],
                                                                            cut.one.way.time=time.covar[cut.time.covar.min.jj, "grid.covar"],
-                                                                           return.cve=TRUE)$cve$min$cve)
-                                
+                                                                           return.cve=TRUE)$cve$min$cve))
+
+                        if (is.character(test.cve5[1])) {
+                            cut.two.way.grid <- cut.two.way.grid[substr(test.cve5,1,1)!="E"]
+                            test.cve5 <- test.cve5[substr(test.cve5,1,1)!="E"]
+                        }
+                                                
                         cut.two.way.min <- cut.two.way.grid[order(test.cve5, cut.two.way.grid)][1]
 
                         if (verbose) print(paste0("cut.two.way.min = ", cut.two.way.min))
@@ -985,6 +1036,8 @@ contmle <- function(dt,
 
                         if (verbose) print(paste0("final hal model for event = ", fit.delta,":"))
 
+                        #if (fit.delta == 0) browser()
+
                         mat <- fit.hal(covars=one.way.screening, dt=dt,
                                        cut.one.way=cut.one.way.min,
                                        time.var=time.var, cut.time=cut.time.min,
@@ -992,12 +1045,29 @@ contmle <- function(dt,
                                        intervention=a, 
                                        verbose=verbose, delta.value=fit.delta,
                                        two.way=two.way.screening,
+                                       #lambda.cvs=c(sapply(1:2, function(jjj) (9:1)/(10^jjj))),
                                        cut.two.way=cut.two.way.min, 
                                        penalize.treatment=FALSE, penalize.time=FALSE,
                                        predict=max(tau), treatment.prediction=A.name, 
                                        treatment="A.obs", cut.time.treatment=cut.time.treatment.min,
                                        cut.time.covar=time.covar[cut.time.covar.min.jj, "grid.time"],
-                                       cut.one.way.time=time.covar[cut.time.covar.min.jj, "grid.covar"])                              
+                                       cut.one.way.time=time.covar[cut.time.covar.min.jj, "grid.covar"])
+
+                        if (FALSE) test.cve <- fit.hal(covars=one.way.screening, dt=dt,
+                                                       cut.one.way=cut.one.way.min,
+                                                       time.var=time.var, cut.time=cut.time.min,
+                                                       mat=mat, delta.var="delta.obs", V=V,
+                                                       intervention=a, 
+                                                       verbose=verbose, delta.value=fit.delta,
+                                                       two.way=two.way.screening,
+                                                       cut.two.way=cut.two.way.min,
+                                                       lambda.cvs=c(sapply(1:5, function(jjj) (20:1)/2/(10^jjj))),
+                                                       penalize.treatment=FALSE, penalize.time=FALSE,
+                                                       predict=max(tau), treatment.prediction=A.name, 
+                                                       treatment="A.obs", cut.time.treatment=cut.time.treatment.min,
+                                                       cut.time.covar=time.covar[cut.time.covar.min.jj, "grid.time"],
+                                                       cut.one.way.time=time.covar[cut.time.covar.min.jj, "grid.covar"],
+                                                       return.cve=TRUE)
                       
                         if (FALSE) {
 
@@ -1062,16 +1132,36 @@ contmle <- function(dt,
 
                         #if (each==2) browser()
 
-                        mat <- fit.hal(covars=one.way.screening, dt=dt, cut.one.way=15,
-                                       time.var=time.var, cut.time=cut.time,
-                                       mat=mat, delta.var="delta.obs", V=V,
-                                       intervention=a, 
-                                       verbose=verbose, delta.value=fit.delta,
-                                       two.way=two.way.screening, cut.two.way=cut.two.way, 
-                                       penalize.treatment=FALSE, penalize.time=FALSE,
-                                       predict=max(tau), treatment.prediction=A.name, 
-                                       treatment="A.obs", cut.time.treatment=cut.time.A,
-                                       cut.time.covar=cut.time.covar)
+                        mat.try <- try(fit.hal(covars=one.way.screening, dt=dt, cut.one.way=15,
+                                               time.var=time.var, cut.time=cut.time,
+                                               mat=mat, delta.var="delta.obs", V=V,
+                                               intervention=a, 
+                                               verbose=verbose, delta.value=fit.delta,
+                                               two.way=two.way.screening, cut.two.way=cut.two.way, 
+                                               penalize.treatment=FALSE, penalize.time=FALSE,
+                                               predict=max(tau), treatment.prediction=A.name, 
+                                               treatment="A.obs", cut.time.treatment=cut.time.A,
+                                               cut.time.covar=cut.time.covar))
+
+                        if (is.character(mat.try)) {
+                            mat <- try(fit.hal(covars=one.way.screening, dt=dt, cut.one.way=15,
+                                               time.var=time.var, cut.time=cut.time,
+                                               mat=mat, delta.var="delta.obs", V=V,
+                                               intervention=a, 
+                                               verbose=verbose, delta.value=fit.delta,
+                                               two.way=two.way.screening, cut.two.way=cut.two.way, 
+                                               penalize.treatment=FALSE, penalize.time=TRUE,
+                                               predict=max(tau), treatment.prediction=A.name, 
+                                               treatment="A.obs", cut.time.treatment=cut.time.A,
+                                               cut.time.covar=cut.time.covar))
+                        } else {
+                            mat <- copy(mat.try)
+                        }
+
+                        rm(mat.try)
+                        
+
+                        
                      
                         if (FALSE) {
                             mat2[time<=tau, exp(-cumsum(dhaz1*fit.cox1))[.N], by=c("id", A.name)][, mean(V1), by=A.name][order(V1), V1]
@@ -1756,17 +1846,23 @@ contmle <- function(dt,
                 Pn.eic.norm.prev <- Pn.eic.norm
 
                 if (target.S) {
-                    Pn.eic3 <- sapply(1:length(Pn.eic), function(kk) Pn.eic[[kk]]/(ifelse(any(unlist(S.se.init)==0), S.se.init[kk]+0.001, S.se.init[kk])*sqrt(n)))
+                    #Pn.eic3 <- sapply(1:length(Pn.eic), function(kk) Pn.eic[[kk]]/(ifelse(any(unlist(S.se.init)==0), S.se.init[kk]+0.001, S.se.init[kk])*sqrt(n)))
+                    Pn.eic3 <- sapply(1:length(Pn.eic), function(kk) Pn.eic[[kk]]/(sapply(S.se.init, function(xx) ifelse(xx == 0, xx+0.001, xx))*sqrt(n)))
                 } else {
-                    Pn.eic3 <- lapply(1:length(Pn.eic), function(kk) Pn.eic[[kk]]/(ifelse(any(unlist(init.ic)==0), init.ic[[kk]]+0.001, init.ic[[kk]])*sqrt(n)))
+                    #Pn.eic3 <- lapply(1:length(Pn.eic), function(kk) Pn.eic[[kk]]/(ifelse(any(unlist(init.ic)==0), init.ic[[kk]]+0.001, init.ic[[kk]])*sqrt(n)))
+                    Pn.eic3 <- lapply(1:length(Pn.eic), function(kk) Pn.eic[[kk]]/(sapply(init.ic[[kk]], function(xx) ifelse(xx == 0, xx+0.001, xx))*sqrt(n)))
                 }
             }
 
             if (target.S) {
-                Pn.eic3 <- sapply(1:length(Pn.eic), function(kk) Pn.eic[[kk]]/(ifelse(any(unlist(S.se.init)==0), S.se.init[kk]+0.001, S.se.init[kk])*sqrt(n)))
+                #Pn.eic3 <- sapply(1:length(Pn.eic), function(kk) Pn.eic[[kk]]/(ifelse(any(unlist(S.se.init)==0), S.se.init[kk]+0.001, S.se.init[kk])*sqrt(n)))
+                Pn.eic3 <- sapply(1:length(Pn.eic), function(kk) Pn.eic[[kk]]/(sapply(S.se.init, function(xx) ifelse(xx == 0, xx+0.001, xx))*sqrt(n)))
             } else {
-                Pn.eic3 <- lapply(1:length(Pn.eic), function(kk) Pn.eic[[kk]]/(ifelse(any(unlist(init.ic)==0), init.ic[[kk]]+0.001, init.ic[[kk]])*sqrt(n)))
+                #Pn.eic3 <- lapply(1:length(Pn.eic), function(kk) Pn.eic[[kk]]/(ifelse(any(unlist(init.ic)==0), init.ic[[kk]]+0.001, init.ic[[kk]])*sqrt(n)))
+                Pn.eic3 <- lapply(1:length(Pn.eic), function(kk) Pn.eic[[kk]]/(sapply(init.ic[[kk]], function(xx) ifelse(xx == 0, xx+0.001, xx))*sqrt(n)))
             }
+
+            if (verbose) print(paste0("eic = ", Pn.eic.fun(mat)))
             
             if (cr & length(target)==length(outcome.index) & !target.S) {
                 #--- here in fact want to check that we solve survival eic well enough!
@@ -1802,9 +1898,9 @@ contmle <- function(dt,
             if (check.sup.norm | step==no.small.steps) {#(left.criterion<=criterion) {
                 if (step==no.small.steps) {
                     message("Warning: Algorithm did not converge")
+                } else {
+                    if (verbose) print(paste0("converged", " at ", step, "th step"))
                 }
-                
-                if (verbose) print(paste0("converged", " at ", step, "th step"))
                 if (verbose) print(paste0("eic = ", Pn.eic.fun(mat)))
 
                 if (output.mat=="updated") {
@@ -2198,6 +2294,12 @@ contmle <- function(dt,
             Sigma <- eval.ic(mat, init.fit, target.index=outcome.index[target], Sigma=TRUE, survival=TRUE)
         } else {
             Sigma <- eval.ic(mat, init.fit, target.index=outcome.index[target], Sigma=TRUE)
+        }
+        if (any(Sigma == 0)) {
+            Sigma <- apply(Sigma, 2, function(x) {
+                x[x == 0] <- 0.000000001
+                return(x)
+            })
         }
         rho <- matrix(0, nrow=nrow(Sigma), ncol=ncol(Sigma))
         for (j1 in 1:nrow(rho)) {

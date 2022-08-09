@@ -90,7 +90,7 @@ fit.hal <- function(covars, dt, treatment=NULL, V=5, cut.one.way=8, method.risk=
                                  offset=offset2,
                                  family="poisson",
                                  penalty.factor=penalty.factor,
-                                 maxit=1000)
+                                 maxit=10000)
             if (use.min) {
                 lambda.cv <- hal.fit$lambda.min
                 hal.fit <- glmnet(x=as.matrix(X2.hal), y=Y2.hal,
@@ -98,7 +98,7 @@ fit.hal <- function(covars, dt, treatment=NULL, V=5, cut.one.way=8, method.risk=
                                   family="poisson",
                                   lambda=lambda.cv,
                                   penalty.factor=penalty.factor,
-                                  maxit=1000)
+                                  maxit=10000)
                 cve.hal <- cv.fun(loss.fun=lebesgue.loss.fun, dt=pseudo.dt, X=X.hal, Y=NULL, time.var=time.var,
                                   penalty.factor=penalty.factor,
                                   offset=TRUE, V=V,lambda.cvs=lambda.cv, delta.var=delta.var, delta.value=delta.value)
@@ -141,7 +141,7 @@ fit.hal <- function(covars, dt, treatment=NULL, V=5, cut.one.way=8, method.risk=
                                   #cve.hal$min$lambda.cv, 
                                   family="poisson",
                                   penalty.factor=penalty.factor,
-                                  maxit=1000)
+                                  maxit=10000)
                 lapply(lambda.cvs, function(lambda.cv) covars[sapply(covars, function(covar) length(grep(covar, coef(hal.fit, s=lambda.cv)@Dimnames[[1]][coef(hal.fit, s=lambda.cv)@i+1]))>0)])
             }
         }
@@ -150,7 +150,7 @@ fit.hal <- function(covars, dt, treatment=NULL, V=5, cut.one.way=8, method.risk=
                              family="cox",
                              grouped=grouped,
                              penalty.factor=penalty.factor,
-                             maxit=1000)
+                             maxit=10000)
         if (use.min) {
             lambda.cv <- hal.fit$lambda.min
             hal.fit <- glmnet(x=as.matrix(X.hal), y=Y.hal,
@@ -158,7 +158,7 @@ fit.hal <- function(covars, dt, treatment=NULL, V=5, cut.one.way=8, method.risk=
                               lambda=lambda.cv,
                               grouped=grouped,
                               penalty.factor=penalty.factor,
-                              maxit=1000)
+                              maxit=10000)
             cve.hal <- cv.fun(loss.fun=cox.loss.fun, dt=dt, X=X.hal, Y=Y.hal, method.risk=method.risk, V=V,
                               penalty.factor=penalty.factor,
                               lambda.cvs=lambda.cv, delta.var=delta.var, delta.value=delta.value)
@@ -174,7 +174,7 @@ fit.hal <- function(covars, dt, treatment=NULL, V=5, cut.one.way=8, method.risk=
                           lambda=cve.hal$min$lambda.cv, 
                           family="cox",
                           penalty.factor=penalty.factor,
-                          maxit=1000)
+                          maxit=10000)
         lambda.cv <- cve.hal$min$lambda.cv
         if (browse) {
             browser()
@@ -183,7 +183,7 @@ fit.hal <- function(covars, dt, treatment=NULL, V=5, cut.one.way=8, method.risk=
                               lambda=cve.hal$min$lambda.cvs, 
                               family="cox",
                               penalty.factor=penalty.factor,
-                              maxit=1000)
+                              maxit=10000)
             lapply(lambda.cvs, function(lambda.cv) covars[sapply(covars, function(covar) length(grep(covar, coef(hal.fit, s=lambda.cv)@Dimnames[[1]][coef(hal.fit, s=lambda.cv)@i+1]))>0)])
         }
     }

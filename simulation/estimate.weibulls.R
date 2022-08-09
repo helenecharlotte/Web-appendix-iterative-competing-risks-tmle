@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:51) 
 ## Version: 
-## Last-Updated: Jul 20 2022 (08:18) 
+## Last-Updated: Aug  9 2022 (10:52) 
 ##           By: Helene
-##     Update #: 92
+##     Update #: 166
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -17,19 +17,42 @@
 
 ######################################################################
 
-#--- try see what super learner would pick
-bhaz.cox <- contmle(follic, estimation=list("outcome"=list(fit="sl",
-                                                           model=Surv(time, status==1)~chemo+stage+hgb+age,
+data(follic, package="randomForestSRC")
+follic <- data.table(follic)  
+ 
+#-- convert variables: 
+follic[, stage:=as.numeric(clinstg==2)] 
+follic[, chemo:=as.numeric(ch=="Y")]
+follic <- follic[, -c("clinstg", "ch"), with=FALSE]
+
+#-- add dummys: 
+follic[, age1 := 1*(age >= 45)]
+follic[, age2 := 1*(age >= 58)]
+follic[, age3 := 1*(age >= 65)]
+follic[, stage.chemo := 1*(stage == 1 & chemo == 1)]
+follic[, log.hgb := log(hgb)]
+follic[, log.age := log(age)]
+follic[, age.stage := age*(stage == 1)]
+
+######################################################################
+
+#--- informative censoring
+bhaz.cox <- contmle(follic, estimation=list("outcome"=list(fit="cox",
+                                                           model=Surv(time, status==1)~chemo+stage+hgb+age.stage,
+                                                           changepoint=0.003,
                                                            lambda.cvs=seq(0.008, 0.02, length=10)),
-                                            "cens"=list(fit="sl",
-                                                        model=Surv(time, status==0)~chemo+stage+hgb+age),
-                                            "cr2"=list(fit="sl",
+                                            "cens"=list(fit="cox",
+                                                        model=Surv(time, status==0)~chemo+stage+hgb+age,
+                                                        changepoint=1.2),
+                                            "cr2"=list(fit="cox",
                                                        model=Surv(time, status==2)~chemo+stage+hgb+age)
                                             ),
                     treat.model=chemo~stage+hgb+age,
                     treat.effect="ate",
                     no.small.steps=500,
-                    sl.models=list(mod1=list(Surv(time, status==1)~chemo+stage+hgb+age, t0 = (1:50)/2000)), 
+                    sl.models=list(mod1=list(Surv(time, status==1)~chemo+stage+hgb+age, t0 = (1:50)/2000),
+                                   mod2=list(Surv(time, status==1)~chemo+stage+hgb+age+age.stage, t0 = (1:50)/2000),
+                                   mod3=list(Surv(time, status==1)~chemo+stage+hgb+age+age.stage+stage.chemo, t0 = (1:50)/2000)), 
                     output.km=TRUE,
                     output.bhaz=TRUE, 
                     V=3, lambda.cvs=seq(0.1, 0.03, length=10), maxit=1e5, penalize.time=FALSE,
@@ -39,11 +62,12 @@ bhaz.cox <- contmle(follic, estimation=list("outcome"=list(fit="sl",
 
 #--- uninformative censoring
 bhaz.uninformative.cens <-
-    contmle(follic, estimation=list("outcome"=list(fit="sl",
-                                                   model=Surv(time, status==1)~chemo+stage+hgb+age,
+    contmle(follic, estimation=list("outcome"=list(fit="cox",
+                                                   model=Surv(time, status==1)~chemo+stage+hgb+age.stage,
+                                                   changepoint=0.003,
                                                    lambda.cvs=seq(0.008, 0.02, length=10)),
                                     "cens"=list(fit="cox", model=Surv(time, status==0)~1),
-                                    "cr2"=list(fit="sl",
+                                    "cr2"=list(fit="cox",
                                                model=Surv(time, status==2)~chemo+stage+hgb+age)
                                     ),
             treat.model=chemo~stage+hgb+age,

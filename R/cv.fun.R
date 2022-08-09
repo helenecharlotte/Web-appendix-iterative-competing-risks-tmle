@@ -106,7 +106,7 @@ cv.fun <- function(loss.fun, dt, V=5, seed=19192, X=NULL, Y=NULL, offset=NULL,
                     train.fit <- try(glmnet(x=as.matrix(X.train), y=Y.train,
                                             offset=offset.train,
                                             family="poisson",
-                                            maxit=1000,
+                                            maxit=10000,
                                             penalty.factor=penalty.factor,
                                             lambda=lambda.cvs), silent=TRUE)
                     
@@ -133,7 +133,7 @@ cv.fun <- function(loss.fun, dt, V=5, seed=19192, X=NULL, Y=NULL, offset=NULL,
                                                offset=offset.train,
                                                family="poisson",
                                                penalty.factor=penalty.factor,
-                                               maxit=1000), silent=TRUE)
+                                               maxit=10000), silent=TRUE)
 
                     if (class(train.fit)=="try-error") {
                         train.fit <- cv.glmnet(x=as.matrix(X.train), y=Y.train,

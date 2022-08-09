@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:53) 
 ## Version: 
-## Last-Updated: Jul 21 2022 (09:48) 
+## Last-Updated: Aug  9 2022 (10:47) 
 ##           By: Helene
-##     Update #: 442
+##     Update #: 658
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -72,11 +72,6 @@ follic[, stage:=as.numeric(clinstg==2)]
 follic[, chemo:=as.numeric(ch=="Y")]
 follic <- follic[, -c("clinstg", "ch"), with=FALSE]
 
-#-- discretized age: 
-follic[, age1 := 1*(age >= 45)]
-follic[, age2 := 1*(age >= 58)]
-follic[, age3 := 1*(age >= 65)]
-
 ######################################################################
 
 source("./simulation/estimate.weibulls.R")
@@ -93,6 +88,7 @@ source("./simulation/follic.output.fun.R")
 #for (tau in c(0.25, 0.5, 0.75, 1:10)) run.follic(get.truth = TRUE, parameter = "0", tau = tau)
 
 run.follic(get.truth = TRUE)
+run.follic(get.truth = TRUE, tau = 5)
 #run.follic(get.truth = TRUE, parameter = "1")
 #run.follic(get.truth = TRUE, parameter = "0")
 
@@ -162,25 +158,56 @@ run.follic(M = 6, verbose = TRUE, fit.initial = "hal", no.cores = 6,
 ######################################################################
 #-- HERE (July, 18)
 
-# new version where simulate *randomized* treatment (*independent* censoring):
-if (FALSE) run.follic(M = 500, verbose = FALSE, fit.initial = "cox", no.cores = 6,
-                      observed.covars = TRUE,
-                      randomized.treatment = TRUE, observed.treatment = FALSE, informative.censoring = FALSE,
-                      sim.sample = 1000)
-if (FALSE) run.follic(M = 500, verbose = FALSE, fit.initial = "hal", no.cores = 6,
-                      observed.covars = TRUE,
-                      randomized.treatment = TRUE, observed.treatment = FALSE, informative.censoring = FALSE,
-                      sim.sample = 1000)
-if (FALSE) run.follic(M = 500, verbose = FALSE, fit.initial = "rf", no.cores = 1,
+run.follic(M = 500, verbose = TRUE, fit.initial = "cox", no.cores = 6,
            observed.covars = TRUE,
            randomized.treatment = TRUE, observed.treatment = FALSE, informative.censoring = FALSE,
            sim.sample = 1000)
 
-run.follic(M = 500, verbose = FALSE, fit.initial = "hal", no.cores = 6,
+run.follic(M = 1, verbose = TRUE, fit.initial = "hal", no.cores = 6,
+           observed.covars = TRUE,
+           randomized.treatment = TRUE, observed.treatment = FALSE, informative.censoring = FALSE,
+           sim.sample = 1000)
+
+run.follic(M = 1, verbose = TRUE, fit.initial = "hal", no.cores = 6,
            observed.covars = TRUE,
            hal.sl = TRUE,
            randomized.treatment = TRUE, observed.treatment = FALSE, informative.censoring = FALSE,
            sim.sample = 1000)
+
+# new version where simulate *randomized* treatment (*independent* censoring):
+if (FALSE) run.follic(M = 1, verbose = TRUE, fit.initial = "cox", no.cores = 6,
+                      observed.covars = TRUE,
+                      randomized.treatment = TRUE, observed.treatment = FALSE, informative.censoring = FALSE,
+                      sim.sample = 1000)
+if (FALSE) run.follic(M = 1, verbose = TRUE, fit.initial = "hal", no.cores = 6,
+                      observed.covars = TRUE,
+                      randomized.treatment = TRUE, observed.treatment = FALSE, informative.censoring = FALSE,
+                      sim.sample = 1000)
+if (FALSE) run.follic(M = 1, verbose = TRUE, fit.initial = "hal", no.cores = 6,
+                      observed.covars = TRUE,
+                      cut.time = 12,
+                      randomized.treatment = TRUE, observed.treatment = FALSE, informative.censoring = FALSE,
+                      sim.sample = 1000)
+if (FALSE) run.follic(M = 1, verbose = TRUE, fit.initial = "hal", no.cores = 6,
+                      observed.covars = TRUE,
+                      hal.sl = TRUE,
+                      randomized.treatment = TRUE, observed.treatment = FALSE, informative.censoring = FALSE,
+                      sim.sample = 1000)
+if (FALSE) run.follic(M = 500, verbose = FALSE, fit.initial = "rf", no.cores = 1,
+                      observed.covars = TRUE,
+                      randomized.treatment = TRUE, observed.treatment = FALSE, informative.censoring = FALSE,
+                      sim.sample = 1000)
+if (FALSE) run.follic(M = 3, verbose = TRUE, fit.initial = "hal", no.cores = 1,
+                      observed.covars = TRUE,
+                      sim.sample = 1000)
+
+run.follic(M = 1, verbose = FALSE, fit.initial = "hal", no.cores = 1,
+           observed.covars = TRUE,
+           #hal.sl = TRUE,
+           browse = TRUE,
+           #randomized.treatment = TRUE, observed.treatment = FALSE,
+           informative.censoring = TRUE, #FALSE,
+           sim.sample = nrow(follic))
 
 # informative censoring: 
 if (FALSE) run.follic(M = 500, verbose = FALSE, fit.initial = "hal", no.cores = 6,
@@ -500,7 +527,7 @@ hal.inf.output <- follic.output.fun(M = 500,
                                     fit.initial = "hal",
                                     informative.censoring = TRUE,
                                     observed.covars = TRUE,
-                                    output.directory = "backup-july-19/simulation",
+                                    output.directory = "backup-july-18/simulation",
                                     sim.sample = 1000)
 
 hal.inf.output <- follic.output.fun(M = 500,
@@ -509,19 +536,175 @@ hal.inf.output <- follic.output.fun(M = 500,
                                     observed.covars = TRUE,
                                     sim.sample = 1000)
 
-hal.ind.output <- follic.output.fun(M = 500,
-                                fit.initial = "hal",
-                                informative.censoring = FALSE,
-                                observed.covars = TRUE,
-                                sim.sample = 1000)
+hal.sl.inf.output <- follic.output.fun(M = 500,
+                                       fit.initial = "hal",
+                                       hal.sl = TRUE,
+                                       informative.censoring = TRUE,
+                                       observed.covars = TRUE,
+                                       output.directory = "backup-july-27/simulation",
+                                       sim.sample = 1000)
 
-hal.rand.output <- follic.output.fun(M = 500,
+hal.sl.inf.output <- follic.output.fun(M = 500,
+                                       fit.initial = "hal",
+                                       hal.sl = TRUE,
+                                       informative.censoring = TRUE,
+                                       observed.covars = TRUE,
+                                       sim.sample = 1000)
+
+hal.ind.output <- follic.output.fun(M = 1000,#500,
+                                    fit.initial = "hal",
+                                    informative.censoring = FALSE,
+                                    observed.covars = TRUE,
+                                    sim.sample = 1000)
+
+rf.inf.output.n2000 <- follic.output.fun(M = 500,#1000,
+                                         fit.initial = "rf",
+                                         onlyM = 500,
+                                         informative.censoring = TRUE,
+                                         observed.covars = TRUE,
+                                         sim.sample = 2000)
+
+hal.inf.output.n2000 <- follic.output.fun(M = 500,#1000,
+                                          fit.initial = "hal",
+                                          # onlyM = 500,
+                                          informative.censoring = TRUE,
+                                          observed.covars = TRUE,
+                                          sim.sample = 2000)
+
+hal.sl.inf.output.n2000 <- follic.output.fun(M = 500,
+                                             fit.initial = "hal",
+                                             hal.sl = TRUE,
+                                             se.bound = 0.037,
+                                             informative.censoring = TRUE,
+                                             observed.covars = TRUE,
+                                             sim.sample = 2000)
+
+cox.inf.output.n2000 <- follic.output.fun(M = 500,#1000,
+                                          onlyM = 500,
+                                          fit.initial = "cox",
+                                          informative.censoring = TRUE,
+                                          observed.covars = TRUE,
+                                          sim.sample = 2000)
+
+rf.rand.output.n2000 <- follic.output.fun(M = 500,
+                                          fit.initial = "rf",
+                                          # onlyM = 500,
+                                          informative.censoring = FALSE,
+                                          observed.covars = TRUE,
+                                          randomized.treatment = TRUE,
+                                          observed.treatment = FALSE,
+                                          #output.directory = "backup-aug-1/simulation",
+                                          sim.sample = 2000)
+
+hal.rand.output.n2000 <- follic.output.fun(M = 1000,
+                                           fit.initial = "hal",
+                                           onlyM = 500,
+                                           informative.censoring = FALSE,
+                                           observed.covars = TRUE,
+                                           randomized.treatment = TRUE,
+                                           observed.treatment = FALSE,
+                                           output.directory = "backup-aug-1/simulation",
+                                           sim.sample = 2000)
+
+hal.rand.output.n2000 <- follic.output.fun(M = 500,#1000,
+                                           fit.initial = "hal",
+                                           onlyM = 500,
+                                           informative.censoring = FALSE,
+                                           observed.covars = TRUE,
+                                           randomized.treatment = TRUE,
+                                           observed.treatment = FALSE,
+                                           #output.directory = "backup-aug-1/simulation",
+                                           sim.sample = 2000)
+
+hal.sl.rand.output.n2000 <- follic.output.fun(M = 500,
+                                              fit.initial = "hal",
+                                              hal.sl = TRUE,
+                                              informative.censoring = FALSE,
+                                              observed.covars = TRUE,
+                                              #browse = TRUE,
+                                              randomized.treatment = TRUE,
+                                              observed.treatment = FALSE,
+                                              #output.directory = "backup-aug-1/simulation",
+                                              sim.sample = 2000)
+
+cox.rand.output.n2000 <- follic.output.fun(M = 1000,
+                                           onlyM = 500,
+                                           fit.initial = "cox",
+                                           informative.censoring = FALSE,
+                                           observed.covars = TRUE,
+                                           randomized.treatment = TRUE,
+                                           observed.treatment = FALSE,
+                                           output.directory = "backup-aug-1/simulation",
+                                           sim.sample = 2000)
+
+cox.rand.output.n2000 <- follic.output.fun(M = 500,#1000,
+                                           onlyM = 500,
+                                           fit.initial = "cox",
+                                           informative.censoring = FALSE,
+                                           observed.covars = TRUE,
+                                           randomized.treatment = TRUE,
+                                           observed.treatment = FALSE,
+                                           #output.directory = "backup-aug-1/simulation",
+                                           sim.sample = 2000)
+
+hal.inf.output.nfollic <- follic.output.fun(M = 500,
+                                            fit.initial = "hal",
+                                            informative.censoring = TRUE,
+                                            observed.covars = TRUE,
+                                            #output.directory = "backup-aug-1/simulation",
+                                            sim.sample = nrow(follic))
+
+hal.sl.inf.output.nfollic <- follic.output.fun(M = 500,
+                                             fit.initial = "hal",
+                                             hal.sl = TRUE,
+                                             informative.censoring = TRUE,
+                                             observed.covars = TRUE,
+                                             sim.sample = nrow(follic))
+
+cox.inf.output.nfollic <- follic.output.fun(M = 500,
+                                            fit.initial = "cox",
+                                            informative.censoring = TRUE,
+                                            observed.covars = TRUE,
+                                            #output.directory = "backup-aug-1/simulation",
+                                            sim.sample = nrow(follic))
+
+
+hal.rand.output.nfollic <- follic.output.fun(M = 500,
+                                             fit.initial = "hal",
+                                             informative.censoring = FALSE,
+                                             observed.covars = TRUE,
+                                             randomized.treatment = TRUE,
+                                             observed.treatment = FALSE,
+                                            # output.directory = "backup-aug-1/simulation",
+                                             sim.sample = nrow(follic))
+
+hal.sl.rand.output.nfollic <- follic.output.fun(M = 500,
+                                                fit.initial = "hal",
+                                                hal.sl = TRUE,
+                                                informative.censoring = FALSE,
+                                                observed.covars = TRUE,
+                                                #browse = TRUE,
+                                                randomized.treatment = TRUE,
+                                                observed.treatment = FALSE,
+                                                output.directory = "backup-aug-1/simulation",
+                                                sim.sample = nrow(follic))
+
+cox.rand.output.nfollic <- follic.output.fun(M = 500,
+                                             fit.initial = "cox",
+                                             informative.censoring = FALSE,
+                                             observed.covars = TRUE,
+                                             randomized.treatment = TRUE,
+                                             observed.treatment = FALSE,
+                                             #output.directory = "backup-aug-1/simulation",
+                                             sim.sample = nrow(follic))
+
+hal.rand.output <- follic.output.fun(M = 1000,
                                      fit.initial = "hal",
                                      informative.censoring = FALSE,
                                      observed.covars = TRUE,
                                      randomized.treatment = TRUE,
                                      observed.treatment = FALSE,
-                                     output.directory = "backup-july-19/simulation",
+                                     #output.directory = "backup-july-19/simulation",
                                      sim.sample = 1000)
 
 hal.rand.output <- follic.output.fun(M = 500,
@@ -531,6 +714,17 @@ hal.rand.output <- follic.output.fun(M = 500,
                                      randomized.treatment = TRUE,
                                      observed.treatment = FALSE,
                                      sim.sample = 1000)
+
+hal.sl.rand.output <- follic.output.fun(M = 500,
+                                        fit.initial = "hal",
+                                        hal.sl = TRUE,
+                                        informative.censoring = FALSE,
+                                        observed.covars = TRUE,
+                                        #browse = TRUE,
+                                        randomized.treatment = TRUE,
+                                        observed.treatment = FALSE,
+                                        #output.directory = "backup-july-27/simulation",
+                                        sim.sample = 1000)
 
 hal.sim.output <- follic.output.fun(M = 500,
                                     fit.initial = "hal",
@@ -559,13 +753,14 @@ cox.ind.output <- follic.output.fun(M = 500,
                                     observed.covars = TRUE,
                                     sim.sample = 1000)
 
+
 cox.rand.output <- follic.output.fun(M = 500,
                                      fit.initial = "cox",
                                      informative.censoring = FALSE,
                                      observed.covars = TRUE,
                                      randomized.treatment = TRUE,
                                      observed.treatment = FALSE,
-                                     output.directory = "backup-july-19/simulation",
+                                     #output.directory = "backup-july-19/simulation",
                                      sim.sample = 1000)
 
 cox.sim.output <- follic.output.fun(M = 500,
@@ -575,6 +770,40 @@ cox.sim.output <- follic.output.fun(M = 500,
                                     observed.treatment = FALSE,
                                     output.directory = "backup-july-19/simulation",
                                     sim.sample = 1000)
+
+
+cox.rand.output.5 <- follic.output.fun(M = 500,
+                                       tau = 5,
+                                       fit.initial = "cox",
+                                       informative.censoring = FALSE,
+                                       observed.covars = TRUE,
+                                       randomized.treatment = TRUE,
+                                       observed.treatment = FALSE,
+                                       sim.sample = 1000)
+
+hal.rand.output.5 <- follic.output.fun(M = 1000,#500,
+                                       tau = 5,
+                                       fit.initial = "hal",
+                                       informative.censoring = FALSE,
+                                       observed.covars = TRUE,
+                                       randomized.treatment = TRUE,
+                                       observed.treatment = FALSE,
+                                       sim.sample = 1000)
+
+cox.inf.output.5 <- follic.output.fun(M = 500,
+                                      tau = 5,
+                                      fit.initial = "cox",
+                                      informative.censoring = TRUE,
+                                      observed.covars = TRUE,
+                                      sim.sample = 1000)
+
+hal.inf.output.5 <- follic.output.fun(M = 1000,#500,
+                                      tau = 5,
+                                      fit.initial = "hal",
+                                      informative.censoring = TRUE,
+                                      observed.covars = TRUE,
+                                      sim.sample = 1000)
+
 
 
 
@@ -773,6 +1002,311 @@ grid.arrange(ggplot(survtmle.results) + theme_bw() +
 
 
 ######################################################################
+# collecting again ? (aug 2, 2022)
+
+hal.rand.output.n2000 <- follic.output.fun(M = 500,#1000,
+                                           fit.initial = "hal",
+                                           #onlyM = 500,
+                                           informative.censoring = FALSE,
+                                           observed.covars = TRUE,
+                                           randomized.treatment = TRUE,
+                                           observed.treatment = FALSE,
+                                           #output.directory = "backup-aug-1/simulation",
+                                           sim.sample = 2000)
+
+rf.rand.output.n2000 <- follic.output.fun(M = 500,
+                                          fit.initial = "rf",
+                                          # onlyM = 500,
+                                          informative.censoring = FALSE,
+                                          observed.covars = TRUE,
+                                          randomized.treatment = TRUE,
+                                          observed.treatment = FALSE,
+                                          #output.directory = "backup-aug-1/simulation",
+                                          sim.sample = 2000)
+
+hal.sl.rand.output.n2000 <- follic.output.fun(M = 500,
+                                              fit.initial = "hal",
+                                              hal.sl = TRUE,
+                                              informative.censoring = FALSE,
+                                              observed.covars = TRUE,
+                                              #browse = TRUE,
+                                              randomized.treatment = TRUE,
+                                              observed.treatment = FALSE,
+                                              #output.directory = "backup-aug-1/simulation",
+                                              sim.sample = 2000)
+
+hal.rand.output.nfollic <- follic.output.fun(M = 500,
+                                             fit.initial = "hal",
+                                             informative.censoring = FALSE,
+                                             observed.covars = TRUE,
+                                             randomized.treatment = TRUE,
+                                             observed.treatment = FALSE,
+                                             #output.directory = "backup-aug-1/simulation",
+                                             sim.sample = nrow(follic))
+
+hal.sl.rand.output.nfollic <- follic.output.fun(M = 500,
+                                                fit.initial = "hal",
+                                                hal.sl = TRUE,
+                                                informative.censoring = FALSE,
+                                                observed.covars = TRUE,
+                                                #browse = TRUE,
+                                                randomized.treatment = TRUE,
+                                                observed.treatment = FALSE,
+                                                output.directory = "backup-aug-1/simulation",
+                                                sim.sample = nrow(follic))
+
+hal.inf.output.n2000 <- follic.output.fun(M = 500,#1000,
+                                          fit.initial = "hal",
+                                          onlyM = 500,
+                                          informative.censoring = TRUE,
+                                          observed.covars = TRUE,
+                                          #output.directory = "backup-aug-1/simulation",
+                                          sim.sample = 2000)
+
+hal.sl.inf.output.n2000 <- follic.output.fun(M = 500,
+                                             fit.initial = "hal",
+                                             hal.sl = TRUE,
+                                             informative.censoring = TRUE,
+                                             observed.covars = TRUE,
+                                             #output.directory = "backup-aug-1/simulation",
+                                             sim.sample = 2000)
+
+rf.inf.output.n2000 <- follic.output.fun(M = 500,
+                                         fit.initial = "rf",
+                                         onlyM = 500,
+                                         informative.censoring = TRUE,
+                                         observed.covars = TRUE,
+                                         #output.directory = "backup-aug-1/simulation",
+                                         sim.sample = 2000)
+
+hal.inf.output.n1000 <- follic.output.fun(M = 500,#1000,#500,
+                                          fit.initial = "hal",
+                                          #onlyM = 500,
+                                          informative.censoring = TRUE,
+                                          observed.covars = TRUE,
+                                          #output.directory = "backup-aug-1/simulation",
+                                          sim.sample = 1000)
+
+cox.inf.output.n1000 <- follic.output.fun(M = 500,
+                                          fit.initial = "cox",
+                                          #onlyM = 500,
+                                          informative.censoring = TRUE,
+                                          observed.covars = TRUE,
+                                          #output.directory = "backup-aug-1/simulation",
+                                          sim.sample = 1000)
+
+hal.sl.inf.output.n1000 <- follic.output.fun(M = 500,
+                                             fit.initial = "hal",
+                                             hal.sl = TRUE,
+                                             informative.censoring = TRUE,
+                                             observed.covars = TRUE,
+                                             #output.directory = "backup-aug-1/simulation",
+                                             sim.sample = 1000)
+
+rf.inf.output.n1000 <- follic.output.fun(M = 500,
+                                         fit.initial = "rf",
+                                         onlyM = 500,
+                                         informative.censoring = TRUE,
+                                         observed.covars = TRUE,
+                                         #output.directory = "backup-aug-1/simulation",
+                                         sim.sample = 1000)
+
+rf.rand.output.n1000 <- follic.output.fun(M = 500,#1000,
+                                           fit.initial = "rf",
+                                           #onlyM = 500,
+                                           informative.censoring = FALSE,
+                                           observed.covars = TRUE,
+                                           randomized.treatment = TRUE,
+                                           observed.treatment = FALSE,
+                                           #output.directory = "backup-aug-1/simulation",
+                                          sim.sample = 1000)
+
+hal.sl.rand.output.n1000 <- follic.output.fun(M = 500,#1000,
+                                              fit.initial = "hal",
+                                              hal.sl = TRUE,
+                                              #onlyM = 500,
+                                              informative.censoring = FALSE,
+                                              observed.covars = TRUE,
+                                              randomized.treatment = TRUE,
+                                              observed.treatment = FALSE,
+                                              #output.directory = "backup-aug-1/simulation",
+                                              sim.sample = 1000)
+
+
+hal.rand.output.n1000 <- follic.output.fun(M = 500,#1000,
+                                           fit.initial = "hal",
+                                           #onlyM = 500,
+                                           informative.censoring = FALSE,
+                                           observed.covars = TRUE,
+                                           randomized.treatment = TRUE,
+                                           observed.treatment = FALSE,
+                                           #output.directory = "backup-aug-1/simulation",
+                                           sim.sample = 1000)
+
+cox.rand.output.n1000 <- follic.output.fun(M = 500,#1000,
+                                           fit.initial = "cox",
+                                           #onlyM = 500,
+                                           informative.censoring = FALSE,
+                                           observed.covars = TRUE,
+                                           randomized.treatment = TRUE,
+                                           observed.treatment = FALSE,
+                                           #output.directory = "backup-aug-1/simulation",
+                                           sim.sample = 1000)
+
+hal.inf.output.nfollic <- follic.output.fun(M = 500,
+                                          fit.initial = "hal",
+                                          onlyM = 500,
+                                          informative.censoring = TRUE,
+                                          observed.covars = TRUE,
+                                          #output.directory = "backup-aug-1/simulation",
+                                          sim.sample = nrow(follic))
+
+hal.sl.inf.output.nfollic <- follic.output.fun(M = 500,
+                                             fit.initial = "hal",
+                                             hal.sl = TRUE,
+                                             informative.censoring = TRUE,
+                                             observed.covars = TRUE,
+                                             output.directory = "backup-aug-1/simulation",
+                                             sim.sample = nrow(follic))
+
+rf.inf.output.nfollic <- follic.output.fun(M = 500,
+                                           fit.initial = "rf",
+                                           onlyM = 500,
+                                           informative.censoring = TRUE,
+                                           observed.covars = TRUE,
+                                           #output.directory = "backup-aug-1/simulation",
+                                           sim.sample = nrow(follic))
+
+cox.inf.output.n2000 <- follic.output.fun(M = 1000,
+                                          onlyM = 500,
+                                          fit.initial = "cox",
+                                          informative.censoring = TRUE,
+                                          observed.covars = TRUE,
+                                          output.directory = "backup-aug-1/simulation",
+                                          sim.sample = 2000)
+
+cox.inf.output.n2000 <- follic.output.fun(M = 500,#1000,
+                                          onlyM = 500,
+                                          fit.initial = "cox",
+                                          informative.censoring = TRUE,
+                                          observed.covars = TRUE,
+                                          #output.directory = "backup-aug-1/simulation",
+                                          sim.sample = 2000)
+
+survtmle.inf.grid0.n2000 <- follic.output.survtmle(M = 500,
+                                                   informative.censoring = TRUE,
+                                                   observed.covars = TRUE,
+                                                   grid.survtmle = (0:10)*4, 
+                                                   sim.sample = 2000)
+
+survtmle.rand.grid0.n2000 <- follic.output.survtmle(M = 500,
+                                                    randomized.treatment = TRUE, observed.treatment = FALSE, informative.censoring = FALSE,
+                                                    observed.covars = TRUE,
+                                                    sl.survtmle = FALSE,
+                                                    grid.survtmle = (0:10)*4, 
+                                                    sim.sample = 2000)
+
+survtmle.inf.grid1.n2000 <- follic.output.survtmle(M = 500,
+                                                   informative.censoring = TRUE,
+                                                   observed.covars = TRUE,
+                                                   grid.survtmle = (0:20)*2, 
+                                                   sim.sample = 2000)
+
+survtmle.rand.grid1.n2000 <- follic.output.survtmle(M = 500,
+                                                    randomized.treatment = TRUE, observed.treatment = FALSE, informative.censoring = FALSE,
+                                                    observed.covars = TRUE,
+                                                    sl.survtmle = FALSE,
+                                                    grid.survtmle = (0:20)*2, 
+                                                    sim.sample = 2000)
+
+survtmle.inf.grid2.n2000 <- follic.output.survtmle(M = 500,
+                                                   informative.censoring = TRUE,
+                                                   observed.covars = TRUE,
+                                                   grid.survtmle = (0:40), 
+                                                   sim.sample = 2000)
+
+survtmle.rand.grid2.n2000 <- follic.output.survtmle(M = 500,
+                                                    randomized.treatment = TRUE, observed.treatment = FALSE, informative.censoring = FALSE,
+                                                    observed.covars = TRUE,
+                                                    sl.survtmle = FALSE,
+                                                    grid.survtmle = (0:40), 
+                                                    sim.sample = 2000)
+
+survtmle.inf.grid3.n2000 <- follic.output.survtmle(M = 500,
+                                                   informative.censoring = TRUE,
+                                                   observed.covars = TRUE,
+                                                   grid.survtmle = (0:80)/2, 
+                                                   sim.sample = 2000)
+
+survtmle.rand.grid3.n2000 <- follic.output.survtmle(M = 500,
+                                                    randomized.treatment = TRUE, observed.treatment = FALSE, informative.censoring = FALSE,
+                                                    observed.covars = TRUE,
+                                                    sl.survtmle = FALSE,
+                                                    grid.survtmle = (0:80)/2, 
+                                                    sim.sample = 2000)
+
+survtmle.inf.grid0.n1000 <- follic.output.survtmle(M = 500,
+                                                   informative.censoring = TRUE,
+                                                   observed.covars = TRUE,
+                                                   grid.survtmle = (0:10)*4, 
+                                                   sim.sample = 1000)
+
+survtmle.rand.grid0.n1000 <- follic.output.survtmle(M = 500,
+                                                    randomized.treatment = TRUE, observed.treatment = FALSE, informative.censoring = FALSE,
+                                                    observed.covars = TRUE,
+                                                    sl.survtmle = FALSE,
+                                                    grid.survtmle = (0:10)*4, 
+                                                    sim.sample = 1000)
+
+survtmle.inf.grid1.n1000 <- follic.output.survtmle(M = 500,
+                                                   informative.censoring = TRUE,
+                                                   observed.covars = TRUE,
+                                                   grid.survtmle = (0:20)*2, 
+                                                   sim.sample = 1000)
+
+survtmle.rand.grid1.n1000 <- follic.output.survtmle(M = 500,
+                                                    randomized.treatment = TRUE, observed.treatment = FALSE, informative.censoring = FALSE,
+                                                    observed.covars = TRUE,
+                                                    sl.survtmle = FALSE,
+                                                    grid.survtmle = (0:20)*2, 
+                                                    sim.sample = 1000)
+
+survtmle.inf.grid2.n1000 <- follic.output.survtmle(M = 500,
+                                                   informative.censoring = TRUE,
+                                                   observed.covars = TRUE,
+                                                   grid.survtmle = (0:40), 
+                                                   sim.sample = 1000)
+
+survtmle.rand.grid2.n1000 <- follic.output.survtmle(M = 500,
+                                                    randomized.treatment = TRUE, observed.treatment = FALSE, informative.censoring = FALSE,
+                                                    observed.covars = TRUE,
+                                                    sl.survtmle = FALSE,
+                                                    grid.survtmle = (0:40), 
+                                                    sim.sample = 1000)
+
+survtmle.inf.grid3.n1000 <- follic.output.survtmle(M = 500,
+                                                   informative.censoring = TRUE,
+                                                   observed.covars = TRUE,
+                                                   grid.survtmle = (0:80)/2, 
+                                                   sim.sample = 1000)
+
+survtmle.rand.grid3.n1000 <- follic.output.survtmle(M = 500,
+                                                    randomized.treatment = TRUE, observed.treatment = FALSE, informative.censoring = FALSE,
+                                                    observed.covars = TRUE,
+                                                    sl.survtmle = FALSE,
+                                                    grid.survtmle = (0:80)/2, 
+                                                    sim.sample = 1000)
+
+
+cox.inf.output.n1000 <- follic.output.fun(M = 500,#1000,
+                                          onlyM = 500,
+                                          fit.initial = "cox",
+                                          informative.censoring = TRUE,
+                                          observed.covars = TRUE,
+                                          output.directory = "backup-aug-1/simulation",
+                                          sim.sample = 1000)
+
+######################################################################
 
 
 if (FALSE) { 
@@ -797,13 +1331,25 @@ if (FALSE) {
     sim.follic.3[status==1, summary(time)] 
     follic[status==1, summary(time)]
 
+    cbind(sim.data = sim.follic.3[status == 1, summary(time), by = "chemo"], 
+          obs.data = follic[status == 1, summary(time), by = "chemo"])
+
     print("status = 2:")
     sim.follic.3[status==2, summary(time)] 
     follic[status==2, summary(time)]
 
+    cbind(sim.data = sim.follic.3[status == 2, summary(time), by = "chemo"], 
+          obs.data = follic[status == 2, summary(time), by = "chemo"])
+    
     print("status = 0:")
     sim.follic.3[status==0, summary(time)] 
     follic[status==0, summary(time)]
+
+    cbind(sim.data = sim.follic.3[status == 0, summary(time), by = "chemo"], 
+          obs.data = follic[status == 0, summary(time), by = "chemo"])
+
+    sim.follic.3[time <= 10, table(status)]
+    follic[time <= 10, table(status)]
 
     #--- test with independent censoring:
 
@@ -833,7 +1379,60 @@ if (FALSE) {
     print("status = 0:")
     sim.follic.3[status==0, summary(time)] 
     follic[status==0, summary(time)]
+    
+    cbind(sim.data = sim.follic.3[status == 0, summary(time), by = "chemo"], 
+          obs.data = follic[status == 0, summary(time), by = "chemo"])
 
+    sim.follic.3[time <= 10, table(status)]
+    follic[time <= 10, table(status)]
+
+    #--- test with independent censoring and randomized treatment:
+
+    seed <- sample(10000, 1)
+    #seed <- 4660
+    sim.follic.3 <- simulate.follic.3(observed.covars = TRUE,
+                                      sim.sample = nrow(follic),
+                                      counterfactual = NULL,
+                                      seed = seed, 
+                                      informative.censoring = FALSE,
+                                      observed.treatment = FALSE, 
+                                      randomized.treatment = TRUE,
+                                      keep.times = FALSE)
+
+    sim.follic.3[, table(chemo, status)]
+    follic[, table(chemo, status)]
+
+    sim.follic.3[, table(status)]
+    follic[, table(status)]
+
+    cbind(sim.data = sim.follic.3[, summary(time), by = "chemo"], 
+          obs.data = follic[, summary(time), by = "chemo"])
+
+    print("status = 1:") 
+    sim.follic.3[status==1, summary(time)] 
+    follic[status==1, summary(time)]
+
+    cbind(sim.data = sim.follic.3[status == 1, summary(time), by = "chemo"], 
+          obs.data = follic[status == 1, summary(time), by = "chemo"])
+
+    print("status = 2:")
+    sim.follic.3[status==2, summary(time)] 
+    follic[status==2, summary(time)]
+
+    cbind(sim.data = sim.follic.3[status == 2, summary(time), by = "chemo"], 
+          obs.data = follic[status == 2, summary(time), by = "chemo"])
+
+    print("status = 0:")
+    sim.follic.3[status==0, summary(time)] 
+    follic[status==0, summary(time)]
+
+    cbind(sim.data = sim.follic.3[status == 0, summary(time), by = "chemo"], 
+          obs.data = follic[status == 0, summary(time), by = "chemo"])
+    
+    sim.follic.3[time <= 10, table(status)]
+    follic[time <= 10, table(status)]
+
+    
     #--- test covariate dependent censoring, simulated covariates:
     
     seed <- sample(10000, 1) 

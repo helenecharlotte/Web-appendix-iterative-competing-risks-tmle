@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:52) 
 ## Version: 
-## Last-Updated: Jul 18 2022 (11:25) 
+## Last-Updated: Jul 27 2022 (14:33) 
 ##           By: Helene
-##     Update #: 33
+##     Update #: 37
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -169,7 +169,7 @@ simulate.follic.3 <- function(observed.covars = TRUE,
         }
         if (!observed.treatment) {
             if (randomized.treatment) {
-                follic.sim[, chemo :=  rbinom(sim.sample, 1, p.chemo)]
+                follic.sim[, chemo := rbinom(sim.sample, 1, p.chemo)]
             } else {
                 follic.sim[, chemo := sapply(predict(glm.chemo, type = "response", newdata = follic.sim),
                                              function(p) rbinom(1,1,p))]

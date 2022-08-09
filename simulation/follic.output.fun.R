@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (12:51) 
 ## Version: 
-## Last-Updated: Jul 20 2022 (14:45) 
+## Last-Updated: Aug  9 2022 (10:41) 
 ##           By: Helene
-##     Update #: 105
+##     Update #: 160
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -25,13 +25,22 @@ follic.output.fun <- function(M = 500,
                               parameter = "ate",
                               seed.init = 100,
                               fit.initial = "rf",
+                              hal.sl = FALSE,
+                              cut.time=18,
+                              cut.time.covar=15,
+                              cut.time.A=15,
+                              cut.covars=15,
+                              cut.two.way=10,
                               informative.censoring = FALSE,
                               tau = 10,
                               observed.covars = FALSE,
                               observed.treatment = TRUE,
                               randomized.treatment = FALSE,
                               sim.sample = 1000,
-                              output.directory = "simulation"
+                              output.directory = "simulation",
+                              browse = FALSE,
+                              onlyM = M,
+                              se.bound = 0.06
                               ) {
 
     print(paste0("./", output.directory, "/output/",
@@ -39,6 +48,12 @@ follic.output.fun <- function(M = 500,
                  paste0("-", parameter),
                  paste0("-seed.init", seed.init),
                  paste0("-fit.initial", fit.initial),
+                 ifelse(hal.sl, "-hal.sl", ""),
+                 ifelse(cut.time == 18, "", paste0("-cut.time", cut.time)),
+                 ifelse(cut.time.covar == 15, "", paste0("-cut.time.covar", cut.time.covar)),
+                 ifelse(cut.time.A == 15, "", paste0("-cut.time.A", cut.time.A)),
+                 ifelse(cut.covars == 15, "", paste0("-cut.covars", cut.covars)),
+                 ifelse(cut.two.way == 10, "", paste0("-cut.two.way", cut.two.way)),
                  paste0("-tau", tau),
                  ifelse(informative.censoring, "", "-independentcens"),
                  ifelse(observed.covars, "", "-simulatedcovars"),
@@ -53,6 +68,12 @@ follic.output.fun <- function(M = 500,
                                                    paste0("-", parameter),
                                                    paste0("-seed.init", seed.init),
                                                    paste0("-fit.initial", fit.initial),
+                                                   ifelse(hal.sl, "-hal.sl", ""),
+                                                   ifelse(cut.time == 18, "", paste0("-cut.time", cut.time)),
+                                                   ifelse(cut.time.covar == 15, "", paste0("-cut.time.covar", cut.time.covar)),
+                                                   ifelse(cut.time.A == 15, "", paste0("-cut.time.A", cut.time.A)),
+                                                   ifelse(cut.covars == 15, "", paste0("-cut.covars", cut.covars)),
+                                                   ifelse(cut.two.way == 10, "", paste0("-cut.two.way", cut.two.way)),
                                                    paste0("-tau", tau),
                                                    ifelse(informative.censoring, "", "-independentcens"),
                                                    ifelse(observed.covars, "", "-simulatedcovars"),
@@ -64,7 +85,7 @@ follic.output.fun <- function(M = 500,
 
 
     print("#----------------------------------------------------------------------")
-    print(paste0("# results for initial fit = * ", fit.initial, " * "))
+    print(paste0("# results for initial fit = * ", ifelse(hal.sl, "hal-SL", fit.initial), " * "))
     print(paste0("# ", ifelse(informative.censoring, "informative censoring", "independent censoring")))
     print(paste0("# ", ifelse(observed.covars, "observed covariates", "simulated covariates")))
     print(paste0("# ", ifelse(observed.treatment, "observed treatment",
@@ -72,19 +93,17 @@ follic.output.fun <- function(M = 500,
                               "simulated treatment"))))
     print("#----------------------------------------------------------------------")
 
-    print(paste0("true.psi = ", true.psi <- readRDS(file=paste0("./", output.directory, "/output/",
-                                                                "outlist-follic-true-",
-                                                                ifelse(parameter == "ate", parameter, paste0("psi", parameter)),
-                                                                paste0("-seed.init", seed.init),
-                                                                ifelse(observed.covars, "", "-simulatedcovars"),
-                                                                paste0("-tau", tau),
-                                                                ".rds"))))
-
     out <- readRDS(file=paste0("./", output.directory, "/output/",
                                "outlist-follic-contmle",
                                paste0("-", parameter),
                                paste0("-seed.init", seed.init),
                                paste0("-fit.initial", fit.initial),
+                               ifelse(hal.sl, "-hal.sl", ""),
+                               ifelse(cut.time == 18, "", paste0("-cut.time", cut.time)),
+                               ifelse(cut.time.covar == 15, "", paste0("-cut.time.covar", cut.time.covar)),
+                               ifelse(cut.time.A == 15, "", paste0("-cut.time.A", cut.time.A)),
+                               ifelse(cut.covars == 15, "", paste0("-cut.covars", cut.covars)),
+                               ifelse(cut.two.way == 10, "", paste0("-cut.two.way", cut.two.way)),
                                paste0("-tau", tau),
                                ifelse(informative.censoring, "", "-independentcens"),
                                ifelse(observed.covars, "", "-simulatedcovars"),
@@ -93,6 +112,20 @@ follic.output.fun <- function(M = 500,
                                       "-simulatedtreatment")),
                                ifelse(sim.sample == nrow(follic), "", paste0("-n", sim.sample)),
                                "-M", M, ".rds"))
+
+    if (onlyM<M) {
+        out <- out[1:onlyM]
+        print(paste0("(only look at first ", length(out), " runs)"))
+        print("#----------------------------------------------------------------------")
+    }
+    
+    print(paste0("true.psi = ", true.psi <- readRDS(file=paste0("./", output.directory, "/output/",
+                                                                "outlist-follic-true-",
+                                                                ifelse(parameter == "ate", parameter, paste0("psi", parameter)),
+                                                                paste0("-seed.init", seed.init),
+                                                                ifelse(observed.covars, "", "-simulatedcovars"),
+                                                                paste0("-tau", tau),
+                                                                ".rds"))))
 
     print(paste0("bias tmle = ", mean(tmle.est <- unlist(lapply(out, function(out1) {
         if (is.list(out1[[1]])) {
@@ -111,6 +144,8 @@ follic.output.fun <- function(M = 500,
     })), na.rm = TRUE)-true.psi))
 
     print(paste0("fraction failed to produce output = ", mean(is.na(tmle.est))))
+    if (mean(is.na(tmle.est))>0) print(paste0("(for m = ", paste0((1:length(out))[is.na(tmle.est)], collapse = ","), ")"))
+    if (browse) browser()
 
     par(mfrow = c(1,4))
     hist(tmle.est)
@@ -142,6 +177,7 @@ follic.output.fun <- function(M = 500,
         } else return(NA)
     }))
 
+    print(paste0("mse (tmle) = ", mse(tmle.est)))
     print(paste0("mse (tmle/km) = ", mse(tmle.est)/mse(km.est)))
 
     #-- km coverage
@@ -156,6 +192,20 @@ follic.output.fun <- function(M = 500,
     print(paste0("coverage = ", coverage <- mean(tmle.est - 1.96*tmle.se <= true.psi &
                                                  true.psi <= tmle.est + 1.96*tmle.se, na.rm = TRUE)))
 
+    if (any(tmle.se[!is.na(tmle.se)]>se.bound) & sim.sample>nrow(follic)) {
+        print("---------------------")
+        print(paste0("no of tmle.se>", se.bound, " = ", sum(tmle.se>se.bound)))
+        print(paste0("(for m = ", paste0((1:length(out))[tmle.se>se.bound], collapse = ","), ")"))
+        print(paste0("bias tmle.est = ", mean(tmle.est[tmle.se<se.bound]-true.psi, na.rm = TRUE)))
+        print(paste0("mean tmle.se = ", mean(tmle.se[tmle.se<se.bound], na.rm = TRUE)))
+        print(paste0("init mc sd = ", sd(init.est[tmle.se<se.bound], na.rm = TRUE)))
+        print(paste0("tmle mc sd = ", sd(tmle.est[tmle.se<se.bound], na.rm = TRUE)))
+        print(paste0("mse (tmle/km) = ", mse(tmle.est[tmle.se<se.bound])/mse(km.est[tmle.se<se.bound])))
+        print(paste0("coverage = ", mean((tmle.est - 1.96*tmle.se <= true.psi &
+                                          true.psi <= tmle.est + 1.96*tmle.se)[tmle.se<se.bound], na.rm = TRUE)))
+        print("---------------------")
+    }
+
     return(list(bias = list(tmle = mean(tmle.est-true.psi),
                             init = mean(init.est-true.psi),
                             km = mean(km.est-true.psi)),
@@ -164,8 +214,8 @@ follic.output.fun <- function(M = 500,
                 sd = list(tmle = sd(tmle.est),
                           init = sd(init.est),
                           km = sd(km.est)),
-                mse = list(tmle = mse(tmle.est),
-                           km = mse(km.est)),
+                mse = list(tmle = mse(tmle.est)*100,
+                           km = mse(km.est)*100),
                 cov = list(tmle = coverage, km = km.coverage)))
 
 }
@@ -222,6 +272,7 @@ follic.output.survtmle <- function(M = 500,
                  paste0("-", parameter),
                  paste0("-seed.init", seed.init),
                  paste0("-fit.initial", fit.initial),
+                 #ifelse(hal.sl, "-hal.sl", ""),
                  paste0("-tau", tau),
                  ifelse(informative.censoring, "", "-independentcens"),
                  ifelse(observed.covars, "", "-simulatedcovars"),
@@ -238,6 +289,7 @@ follic.output.survtmle <- function(M = 500,
                                                    paste0("-", parameter),
                                                    paste0("-seed.init", seed.init),
                                                    paste0("-fit.initial", fit.initial),
+                                                   #ifelse(hal.sl, "-hal.sl", ""),
                                                    paste0("-tau", tau),
                                                    ifelse(informative.censoring, "", "-independentcens"),
                                                    ifelse(observed.covars, "", "-simulatedcovars"),
@@ -254,6 +306,7 @@ follic.output.survtmle <- function(M = 500,
                                paste0("-", parameter),
                                paste0("-seed.init", seed.init),
                                paste0("-fit.initial", fit.initial),
+                               #ifelse(hal.sl, "-hal.sl", ""),
                                paste0("-tau", tau),
                                ifelse(informative.censoring, "", "-independentcens"),
                                ifelse(observed.covars, "", "-simulatedcovars"),
@@ -298,7 +351,7 @@ follic.output.survtmle <- function(M = 500,
                 cov = list(survtmle = coverage),
                 se = list(survtmle = mean(survtmle.se, na.rm = TRUE)),
                 sd = list(survtmle = sd(survtmle.est, na.rm = TRUE)),
-                mse = list(survtmle = mse(survtmle.est)),
+                mse = list(survtmle = mse(survtmle.est)*100),
                 mse.km = NA))
     
 }

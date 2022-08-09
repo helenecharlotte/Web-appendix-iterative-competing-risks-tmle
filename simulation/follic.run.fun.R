@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (12:12) 
 ## Version: 
-## Last-Updated: Jul 20 2022 (15:50) 
+## Last-Updated: Aug  9 2022 (10:50) 
 ##           By: Helene
-##     Update #: 56
+##     Update #: 74
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -26,6 +26,11 @@ run.follic <- function(M = 1, no_cores = 1, print.m = TRUE, seed.init = 100, no.
                        sim.sample = nrow(follic),
                        informative.censoring = TRUE,
                        browse = FALSE,
+                       cut.time=18,
+                       cut.time.covar=15,
+                       cut.time.A=15,
+                       cut.covars=15,
+                       cut.two.way=10,
                        fit.survtmle = FALSE,
                        grid.survtmle = 0:40,
                        sl.survtmle = FALSE) {
@@ -196,8 +201,12 @@ run.follic <- function(M = 1, no_cores = 1, print.m = TRUE, seed.init = 100, no.
                                                      rf.seed=rf.seed,
                                                      hal.screening=TRUE,
                                                      hal.sl=hal.sl, browse.hal=browse.hal,
-                                                     cut.time.grid=7:9, 
-                                                     cut.time.covar=5,
+                                                     #cut.time.grid=7:9,
+                                                     cut.time=cut.time,
+                                                     cut.time.covar=cut.time.covar,
+                                                     cut.time.A=cut.time.A,
+                                                     cut.covars=cut.covars,
+                                                     cut.two.way=10,
                                                      V=3, lambda.cvs=seq(0.1, 0.03, length=10), maxit=1e5, penalize.time=FALSE,
                                                      verbose=verbose,
                                                      iterative=TRUE,
@@ -223,6 +232,11 @@ run.follic <- function(M = 1, no_cores = 1, print.m = TRUE, seed.init = 100, no.
                             paste0("-seed.init", seed.init),
                             paste0("-fit.initial", fit.initial),
                             ifelse(hal.sl, "-hal.sl", ""),
+                            ifelse(cut.time == 18, "", paste0("-cut.time", cut.time)),
+                            ifelse(cut.time.covar == 15, "", paste0("-cut.time.covar", cut.time.covar)),
+                            ifelse(cut.time.A == 15, "", paste0("-cut.time.A", cut.time.A)),
+                            ifelse(cut.covars == 15, "", paste0("-cut.covars", cut.covars)),
+                            ifelse(cut.two.way == 10, "", paste0("-cut.two.way", cut.two.way)),
                             paste0("-tau", tau),
                             ifelse(informative.censoring, "", "-independentcens"),
                             ifelse(observed.covars, "", "-simulatedcovars"),
