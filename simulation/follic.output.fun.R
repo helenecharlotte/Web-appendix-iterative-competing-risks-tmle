@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (12:51) 
 ## Version: 
-## Last-Updated: Aug  9 2022 (10:41) 
+## Last-Updated: Aug 22 2022 (20:14) 
 ##           By: Helene
-##     Update #: 160
+##     Update #: 163
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -206,14 +206,14 @@ follic.output.fun <- function(M = 500,
         print("---------------------")
     }
 
-    return(list(bias = list(tmle = mean(tmle.est-true.psi),
-                            init = mean(init.est-true.psi),
-                            km = mean(km.est-true.psi)),
-                se = list(tmle = mean(tmle.se),
-                          km = mean(km.se)),
-                sd = list(tmle = sd(tmle.est),
-                          init = sd(init.est),
-                          km = sd(km.est)),
+    return(list(bias = list(tmle = mean(tmle.est-true.psi, na.rm = TRUE),
+                            init = mean(init.est-true.psi, na.rm = TRUE),
+                            km = mean(km.est-true.psi, na.rm = TRUE)),
+                se = list(tmle = mean(tmle.se, na.rm = TRUE),
+                          km = mean(km.se, na.rm = TRUE)),
+                sd = list(tmle = sd(tmle.est, na.rm = TRUE),
+                          init = sd(init.est, na.rm = TRUE),
+                          km = sd(km.est, na.rm = TRUE)),
                 mse = list(tmle = mse(tmle.est)*100,
                            km = mse(km.est)*100),
                 cov = list(tmle = coverage, km = km.coverage)))

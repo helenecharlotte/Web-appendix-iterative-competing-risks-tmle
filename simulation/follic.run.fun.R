@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (12:12) 
 ## Version: 
-## Last-Updated: Aug  9 2022 (10:50) 
+## Last-Updated: Aug 16 2022 (11:52) 
 ##           By: Helene
-##     Update #: 74
+##     Update #: 76
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -206,7 +206,7 @@ run.follic <- function(M = 1, no_cores = 1, print.m = TRUE, seed.init = 100, no.
                                                      cut.time.covar=cut.time.covar,
                                                      cut.time.A=cut.time.A,
                                                      cut.covars=cut.covars,
-                                                     cut.two.way=10,
+                                                     cut.two.way=cut.two.way,
                                                      V=3, lambda.cvs=seq(0.1, 0.03, length=10), maxit=1e5, penalize.time=FALSE,
                                                      verbose=verbose,
                                                      iterative=TRUE,

@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:53) 
 ## Version: 
-## Last-Updated: Aug  9 2022 (10:47) 
+## Last-Updated: Aug 24 2022 (19:24) 
 ##           By: Helene
-##     Update #: 658
+##     Update #: 683
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -165,6 +165,8 @@ run.follic(M = 500, verbose = TRUE, fit.initial = "cox", no.cores = 6,
 
 run.follic(M = 1, verbose = TRUE, fit.initial = "hal", no.cores = 6,
            observed.covars = TRUE,
+           cut.two.way = 0,
+           #browse = TRUE,
            randomized.treatment = TRUE, observed.treatment = FALSE, informative.censoring = FALSE,
            sim.sample = 1000)
 
@@ -185,13 +187,19 @@ if (FALSE) run.follic(M = 1, verbose = TRUE, fit.initial = "hal", no.cores = 6,
                       sim.sample = 1000)
 if (FALSE) run.follic(M = 1, verbose = TRUE, fit.initial = "hal", no.cores = 6,
                       observed.covars = TRUE,
-                      cut.time = 12,
+                      cut.time = 12, cut.time.A = 10, cut.time.covar = 10,
                       randomized.treatment = TRUE, observed.treatment = FALSE, informative.censoring = FALSE,
                       sim.sample = 1000)
 if (FALSE) run.follic(M = 1, verbose = TRUE, fit.initial = "hal", no.cores = 6,
                       observed.covars = TRUE,
                       hal.sl = TRUE,
                       randomized.treatment = TRUE, observed.treatment = FALSE, informative.censoring = FALSE,
+                      sim.sample = 1000)
+if (FALSE) run.follic(M = 1, verbose = TRUE, fit.initial = "hal", no.cores = 6,
+                      observed.covars = TRUE,
+                      hal.sl = TRUE,
+                      randomized.treatment = TRUE, observed.treatment = FALSE,
+                      informative.censoring = TRUE,
                       sim.sample = 1000)
 if (FALSE) run.follic(M = 500, verbose = FALSE, fit.initial = "rf", no.cores = 1,
                       observed.covars = TRUE,
@@ -574,6 +582,7 @@ hal.inf.output.n2000 <- follic.output.fun(M = 500,#1000,
 hal.sl.inf.output.n2000 <- follic.output.fun(M = 500,
                                              fit.initial = "hal",
                                              hal.sl = TRUE,
+                                             #browse = TRUE,
                                              se.bound = 0.037,
                                              informative.censoring = TRUE,
                                              observed.covars = TRUE,
@@ -1004,6 +1013,62 @@ grid.arrange(ggplot(survtmle.results) + theme_bw() +
 ######################################################################
 # collecting again ? (aug 2, 2022)
 
+hal.inf.output.n1000 <- follic.output.fun(M = 500,#1000,#500,
+                                           fit.initial = "hal",
+                                           #onlyM = 500,
+                                           informative.censoring = TRUE,
+                                           observed.covars = TRUE,
+                                           sim.sample = 1000)
+
+hal2.inf.output.n1000 <- follic.output.fun(M = 500,#1000,#500,
+                                           fit.initial = "hal",
+                                           #onlyM = 500,
+                                           informative.censoring = TRUE,
+                                           observed.covars = TRUE,
+                                           cut.time = 12, cut.time.A = 10, cut.time.covar = 10,
+                                           sim.sample = 1000)
+
+hal2.rand.output.n1000 <- follic.output.fun(M = 500,#1000,
+                                            fit.initial = "hal",
+                                            #onlyM = 500,
+                                            informative.censoring = FALSE,
+                                            observed.covars = TRUE,
+                                            randomized.treatment = TRUE,
+                                            observed.treatment = FALSE,
+                                            cut.time = 12, cut.time.A = 10, cut.time.covar = 10,
+                                            sim.sample = 1000)
+
+hal3.rand.output.n1000 <- follic.output.fun(M = 500,#1000,
+                                            fit.initial = "hal",
+                                            #onlyM = 500,
+                                            informative.censoring = FALSE,
+                                            observed.covars = TRUE,
+                                            randomized.treatment = TRUE,
+                                            observed.treatment = FALSE,
+                                            cut.time = 25,
+                                            sim.sample = 1000)
+
+hal4.rand.output.n1000 <- follic.output.fun(M = 500,#1000,
+                                            fit.initial = "hal",
+                                            #onlyM = 500,
+                                            informative.censoring = FALSE,
+                                            observed.covars = TRUE,
+                                            randomized.treatment = TRUE,
+                                            observed.treatment = FALSE,
+                                            cut.two.way = 15,
+                                            sim.sample = 1000)
+
+hal.rand.output.n1000 <- follic.output.fun(M = 500,#1000,
+                                            fit.initial = "hal",
+                                            #onlyM = 500,
+                                            informative.censoring = FALSE,
+                                            observed.covars = TRUE,
+                                            randomized.treatment = TRUE,
+                                            observed.treatment = FALSE,
+                                            sim.sample = 1000)
+
+
+
 hal.rand.output.n2000 <- follic.output.fun(M = 500,#1000,
                                            fit.initial = "hal",
                                            #onlyM = 500,
@@ -1052,7 +1117,7 @@ hal.sl.rand.output.nfollic <- follic.output.fun(M = 500,
                                                 #browse = TRUE,
                                                 randomized.treatment = TRUE,
                                                 observed.treatment = FALSE,
-                                                output.directory = "backup-aug-1/simulation",
+                                                #output.directory = "backup-aug-1/simulation",
                                                 sim.sample = nrow(follic))
 
 hal.inf.output.n2000 <- follic.output.fun(M = 500,#1000,

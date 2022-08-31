@@ -44,7 +44,7 @@ library(ggplot2)
 library(ltmle)
 library(nleqslv)
 library(parallel)
-library(foreach)
+library(foreach) 
 library(doParallel)
 library(prodlim)
 library(gridExtra)
@@ -69,7 +69,7 @@ source("./R/cv.fun.R")
 source("./R/basis.fun.R")
 source("./R/hal.screening.R") 
 source("./R/fit.hal.R")    
-source("./R/cox.sl.R")  
+source("./R/cox.sl.R")   
 source("./R/fit.categorical.R")
 source("./R/predict.catfit.R") 
 #+END_SRC    
@@ -80,7 +80,7 @@ source("./R/predict.catfit.R")
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results none :exports code  :session *R* :cache yes  
 source("./simulation/estimate.weibulls.R")
-source("./simulation/follic.simulation.functions.R")
+source("./simulation/follic.simulation.functions.R") 
 source("./simulation/follic.run.fun.R")
 source("./simulation/follic.output.fun.R")
 #+END_SRC    
@@ -92,7 +92,7 @@ source("./simulation/follic.output.fun.R")
 data(follic, package="randomForestSRC")
 follic <- data.table(follic)  
  
-#-- convert variables: 
+#-- convert variables:  
 follic[, stage:=as.numeric(clinstg==2)] 
 follic[, chemo:=as.numeric(ch=="Y")]
 follic <- follic[, -c("clinstg", "ch"), with=FALSE]
@@ -102,10 +102,10 @@ follic <- follic[, -c("clinstg", "ch"), with=FALSE]
 Events: 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output :exports code  :session *R* :cache yes  
-follic[, table(status)]     
+follic[, table(status)]      
 #+END_SRC    
 
-#+RESULTS[(2022-07-18 09:45:44) e2d3fa94b5da4ac7d6cbcb397de3462640902641]:
+#+RESULTS[(2022-08-31 12:53:04) 88fc3657cf5fa0cff89da053ca883d14e7dd82a8]:
 : status
 :   0   1   2 
 : 193 272  76
@@ -113,20 +113,20 @@ follic[, table(status)]
 Distribution of observed time to event: 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output :exports code  :session *R* :cache yes  
-follic[, summary(time)]    
+follic[, summary(time)]     
 #+END_SRC    
 
-#+RESULTS[(2022-07-18 09:45:47) 0d3a1eea7383758a5ecb9e9d054f33e35d58f0e9]:
+#+RESULTS[(2022-08-31 12:53:07) ad780417e3b08cee0a116beb304862bb5e35e479]:
 :      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
 :  0.002738  1.919233  5.464750  7.393791 10.850103 31.101985
 
 Events before time-horizon of interest:
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results output :exports code  :session *R* :cache yes  
-follic[time<=10, table(status)]     
+follic[time<=10, table(status)]      
 #+END_SRC    
 
-#+RESULTS[(2022-07-18 09:45:50) e1eb7b54ceeb0334e5f132b8cf1e1b4fd3605490]:
+#+RESULTS[(2022-08-31 12:53:09) b7a72a3a5c8a0d178dad0ba90fd7c9df68a52ec3]:
 : status
 :   0   1   2 
 :  95 251  46
@@ -138,77 +138,86 @@ follic[time<=10, table(status)]
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results none :exports none  :session *R* :cache yes
-contmle.results <- do.call("rbind", lapply(list("Randomized treatment + independent censoring", "Informative censoring"), function(outer.which) {
-  out.inner <- data.table(do.call("rbind", lapply(list("hal", "cox", "rf"), function(inner.initial) {
-    try(unlist(follic.output.fun(M = 500,
-                                 randomized.treatment = outer.which == "Randomized treatment + independent censoring",
-                                 observed.treatment = outer.which != "Randomized treatment + independent censoring",
-                                 informative.censoring = outer.which != "Randomized treatment + independent censoring",
-                                 observed.covars = TRUE,
-                                 fit.initial = inner.initial,
-                                 sim.sample = 1000)))
-  })))
-  out.inner[, initial := c("HAL+TMLE", "Cox+TMLE", "RF+TMLE")][, setting := outer.which]
-  return(out.inner[substr(bias.tmle, 1, 5) != "Error"])
-}))
-
-contmle.results <- rbind(contmle.results, do.call("rbind", lapply(unique(contmle.results[["setting"]]), function(which) {
-  contmle.results[setting == which & tolower(substr(initial,1,3)) == "hal"][, initial := "KM"][, bias.tmle := bias.km][, se.tmle := se.km][, sd.tmle := sd.km][, mse.tmle := mse.km]
-})))
-
-survtmle.results <- do.call("rbind", lapply(list("Randomized treatment + independent censoring", "Informative censoring"), function(outer.which) {
-  do.call("rbind", lapply(list((0:10)*4, (0:20)*2, (0:40), (0:80)/2), function(inner.grid) {
-    out.inner <- data.table(do.call("rbind", lapply(list("glm", "sl"), function(inner.sl) {
-      try(unlist(follic.output.survtmle(M = 500,
-                                        randomized.treatment = outer.which == "Randomized treatment + independent censoring",
-                                        observed.treatment = outer.which != "Randomized treatment + independent censoring",
-                                        informative.censoring = outer.which != "Randomized treatment + independent censoring",
-                                        observed.covars = TRUE,
-                                        sl.survtmle = inner.sl == "sl", 
-                                        grid.survtmle = inner.grid, 
-                                        sim.sample = 1000)))
+sim.sample <- 2000
+tmle.results <- do.call("rbind", lapply(c(nrow(follic), 1000, 2000), function(sim.sample) {
+  contmle.results <- do.call("rbind", lapply(list("Randomized treatment + independent censoring", "Informative censoring"), function(outer.which) {
+    out.inner <- data.table(do.call("rbind", lapply(list("hal", "cox", "rf"), function(inner.initial) {
+      try(unlist(follic.output.fun(M = 500, 
+                                   randomized.treatment = outer.which == "Randomized treatment + independent censoring",
+                                   observed.treatment = outer.which != "Randomized treatment + independent censoring",
+                                   informative.censoring = outer.which != "Randomized treatment + independent censoring",
+                                   observed.covars = TRUE,
+                                   fit.initial = inner.initial,
+                                   sim.sample = sim.sample)))
     })))
-    out.inner[, initial := c("GLM", "SL")][, grid.length.used := length(inner.grid)][, setting := outer.which]
-    return(out.inner[substr(bias.survtmle, 1, 5) != "Error"])
+    out.inner[, initial := c("HAL+TMLE", "Cox+TMLE", "RF+TMLE")][, setting := outer.which]
+    return(out.inner[substr(bias.tmle, 1, 5) != "Error"])
   }))
-}))
 
-survtmle.results.fixed.grid <- survtmle.results[grid.length.used == 41]
-survtmle.results.fixed.grid[, initial := paste0("survtmle (", initial, ")")]
-names(survtmle.results.fixed.grid) <- gsub("surv", "", names(survtmle.results.fixed.grid))
-tmle.results <- rbind(contmle.results, survtmle.results.fixed.grid, fill = TRUE)
-tmle.results[, mse.km := na.locf(mse.km), by = setting]
-tmle.results[initial == "KM", initial := "Aalen-Johansen"]
+  contmle.results <- rbind(contmle.results, do.call("rbind", lapply(unique(contmle.results[["setting"]]), function(which) {
+    contmle.results[setting == which & tolower(substr(initial,1,3)) == "hal"][, initial := "KM"][, bias.tmle := bias.km][, se.tmle := se.km][, sd.tmle := sd.km][, mse.tmle := mse.km]
+  })))
+
+  survtmle.results <- do.call("rbind", lapply(list("Randomized treatment + independent censoring", "Informative censoring"), function(outer.which) {
+    do.call("rbind", lapply(list((0:10)*4, (0:20)*2, (0:40), (0:80)/2), function(inner.grid) {
+      out.inner <- data.table(do.call("rbind", lapply(list("glm", "sl"), function(inner.sl) {
+        try(unlist(follic.output.survtmle(M = 500,
+                                          randomized.treatment = outer.which == "Randomized treatment + independent censoring",
+                                          observed.treatment = outer.which != "Randomized treatment + independent censoring",
+                                          informative.censoring = outer.which != "Randomized treatment + independent censoring",
+                                          observed.covars = TRUE,
+                                          sl.survtmle = inner.sl == "sl", 
+                                          grid.survtmle = inner.grid, 
+                                          sim.sample = sim.sample)))
+      })))
+      out.inner[, initial := c("GLM", "SL")][, grid.length.used := length(inner.grid)][, setting := outer.which]
+      return(out.inner[substr(bias.survtmle, 1, 5) != "Error"])
+    }))
+  }))
+
+  survtmle.results.fixed.grid <- survtmle.results[grid.length.used == 41]
+  survtmle.results.fixed.grid[, initial := paste0("survtmle (", initial, ")")]
+  names(survtmle.results.fixed.grid) <- gsub("surv", "", names(survtmle.results.fixed.grid))
+  tmle.results <- rbind(contmle.results, survtmle.results.fixed.grid, fill = TRUE)
+  tmle.results[, mse.km := na.locf(mse.km), by = setting]
+  tmle.results[initial == "KM", initial := "Aalen-Johansen"]
+  tmle.results[, sample.size:=sim.sample] 
+}))
 #+END_SRC
 
 
-#+BEGIN_SRC R :results file graphics :file ./simulation/output/simultation-results.png :exports none :session *R* :cache yes :height 1500 :width 500
-grid.arrange(ggplot(tmle.results) + theme_bw() + 
-             geom_point(aes(x = initial, y = as.numeric(bias.tmle)), shape = 4) +
+#+BEGIN_SRC R :results file graphics :file ./simulation/output/simultation-results-n2000.png :exports none :session *R* :cache yes :height 1500 :width 500
+sim.sample <- 2000  
+grid.arrange(ggplot(tmle.results[sample.size==sim.sample]) + theme_bw() + 
+             geom_point(aes(x = initial, y = as.numeric(bias.tmle), shape = as.factor(sample.size))) +
+             scale_shape_manual("sample size", values=c(4, 8, 9)) + 
              facet_grid(. ~ setting) + 
              geom_hline(yintercept = 0, linetype = "dashed", col = "red", alpha = 0.5) +
              ylab("bias") + xlab("") +
              theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
                    strip.text = element_text(size = 10), 
                    strip.background = element_blank()),
-             ggplot(tmle.results) + theme_bw() +
-             geom_point(aes(x = initial, y = as.numeric(cov.tmle)), shape = 4) +
+             ggplot(tmle.results[sample.size==sim.sample]) + theme_bw() +
+             geom_point(aes(x = initial, y = as.numeric(cov.tmle), shape = as.factor(sample.size))) +
+             scale_shape_manual("sample size", values=c(4, 8, 9)) + 
              facet_grid(. ~ setting) +
              geom_hline(yintercept = 0.95, linetype = "dashed", col = "red", alpha = 0.5) +
              ylab("coverage") + xlab("") +
              theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
                    strip.text = element_text(size = 10),
                    strip.background = element_blank()),
-             ggplot(tmle.results) + theme_bw() +
-             geom_point(aes(x = initial, y = as.numeric(sd.tmle)/as.numeric(se.tmle)), shape = 4) +
+             ggplot(tmle.results[sample.size==sim.sample]) + theme_bw() +
+             geom_point(aes(x = initial, y = as.numeric(sd.tmle)/as.numeric(se.tmle), shape = as.factor(sample.size))) +
+             scale_shape_manual("sample size", values=c(4, 8, 9)) + 
              facet_grid(. ~ setting) +
              geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
              ylab("SD/SE") + xlab("") +
              theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
                    strip.text = element_text(size = 10),
                    strip.background = element_blank()),
-             ggplot(tmle.results) + theme_bw() + 
-             geom_point(aes(x = initial, y = as.numeric(mse.tmle)/as.numeric(mse.km)), shape = 4) +
+             ggplot(tmle.results[sample.size==sim.sample]) + theme_bw() + 
+             geom_point(aes(x = initial, y = as.numeric(mse.tmle)/as.numeric(mse.km), shape = as.factor(sample.size))) +
+             scale_shape_manual("sample size", values=c(4, 8, 9)) + 
              facet_grid(. ~ setting) +
              geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
              ylab("MSE/MSE(KM)") + xlab("") +
@@ -218,8 +227,100 @@ grid.arrange(ggplot(tmle.results) + theme_bw() +
              ncol=1)
 #+END_SRC
 
-#+RESULTS[(2022-07-21 16:07:51) 132e10da4fd1b32c29a2f5ed189119c45a2a5844]:
-[[file:./simulation/output/simultation-results.png]]
+#+RESULTS[(2022-08-31 13:52:44) ad0adfc035c4df3d0f1de056f554ecd8cac41087]:
+[[file:./simulation/output/simultation-results-n2000.png]]
+
+
+
+#+BEGIN_SRC R :results file graphics :file ./simulation/output/simultation-results-n1000.png :exports none :session *R* :cache yes :height 1500 :width 500
+sim.sample <- 1000   
+grid.arrange(ggplot(tmle.results[sample.size==sim.sample]) + theme_bw() + 
+             geom_point(aes(x = initial, y = as.numeric(bias.tmle), shape = as.factor(sample.size))) +
+             scale_shape_manual("sample size", values=c(4, 8, 9)) + 
+             facet_grid(. ~ setting) + 
+             geom_hline(yintercept = 0, linetype = "dashed", col = "red", alpha = 0.5) +
+             ylab("bias") + xlab("") +
+             theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+                   strip.text = element_text(size = 10), 
+                   strip.background = element_blank()),
+             ggplot(tmle.results[sample.size==sim.sample]) + theme_bw() +
+             geom_point(aes(x = initial, y = as.numeric(cov.tmle), shape = as.factor(sample.size))) +
+             scale_shape_manual("sample size", values=c(4, 8, 9)) + 
+             facet_grid(. ~ setting) +
+             geom_hline(yintercept = 0.95, linetype = "dashed", col = "red", alpha = 0.5) +
+             ylab("coverage") + xlab("") +
+             theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+                   strip.text = element_text(size = 10),
+                   strip.background = element_blank()),
+             ggplot(tmle.results[sample.size==sim.sample]) + theme_bw() +
+             geom_point(aes(x = initial, y = as.numeric(sd.tmle)/as.numeric(se.tmle), shape = as.factor(sample.size))) +
+             scale_shape_manual("sample size", values=c(4, 8, 9)) + 
+             facet_grid(. ~ setting) +
+             geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
+             ylab("SD/SE") + xlab("") +
+             theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+                   strip.text = element_text(size = 10),
+                   strip.background = element_blank()),
+             ggplot(tmle.results[sample.size==sim.sample]) + theme_bw() + 
+             geom_point(aes(x = initial, y = as.numeric(mse.tmle)/as.numeric(mse.km), shape = as.factor(sample.size))) +
+             scale_shape_manual("sample size", values=c(4, 8, 9)) + 
+             facet_grid(. ~ setting) +
+             geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
+             ylab("MSE/MSE(KM)") + xlab("") +
+             theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+                   strip.text = element_text(size = 10),  
+                   strip.background = element_blank()),
+             ncol=1)
+#+END_SRC
+
+#+RESULTS[(2022-08-31 13:53:01) 4cfa95b13970bbe8998b4555e55e0cd1371b4fc1]:
+[[file:./simulation/output/simultation-results-n1000.png]]
+
+
+#+BEGIN_SRC R :results file graphics :file ./simulation/output/simultation-results-nfollic.png :exports none :session *R* :cache yes :height 1500 :width 500
+sim.sample <- nrow(follic)   
+grid.arrange(ggplot(tmle.results[sample.size==sim.sample]) + theme_bw() + 
+             geom_point(aes(x = initial, y = as.numeric(bias.tmle), shape = as.factor(sample.size))) +
+             scale_shape_manual("sample size", values=c(4, 8, 9)) + 
+             facet_grid(. ~ setting) + 
+             geom_hline(yintercept = 0, linetype = "dashed", col = "red", alpha = 0.5) +
+             ylab("bias") + xlab("") +
+             theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+                   strip.text = element_text(size = 10), 
+                   strip.background = element_blank()),
+             ggplot(tmle.results[sample.size==sim.sample]) + theme_bw() +
+             geom_point(aes(x = initial, y = as.numeric(cov.tmle), shape = as.factor(sample.size))) +
+             scale_shape_manual("sample size", values=c(4, 8, 9)) + 
+             facet_grid(. ~ setting) +
+             geom_hline(yintercept = 0.95, linetype = "dashed", col = "red", alpha = 0.5) +
+             ylab("coverage") + xlab("") +
+             theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+                   strip.text = element_text(size = 10),
+                   strip.background = element_blank()),
+             ggplot(tmle.results[sample.size==sim.sample]) + theme_bw() +
+             geom_point(aes(x = initial, y = as.numeric(sd.tmle)/as.numeric(se.tmle), shape = as.factor(sample.size))) +
+             scale_shape_manual("sample size", values=c(4, 8, 9)) + 
+             facet_grid(. ~ setting) +
+             geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
+             ylab("SD/SE") + xlab("") +
+             theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+                   strip.text = element_text(size = 10),
+                   strip.background = element_blank()),
+             ggplot(tmle.results[sample.size==sim.sample]) + theme_bw() + 
+             geom_point(aes(x = initial, y = as.numeric(mse.tmle)/as.numeric(mse.km), shape = as.factor(sample.size))) +
+             scale_shape_manual("sample size", values=c(4, 8, 9)) + 
+             facet_grid(. ~ setting) +
+             geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
+             ylab("MSE/MSE(KM)") + xlab("") +
+             theme(axis.text.x = element_text(size = 12, angle = 45, hjust = 1),
+                   strip.text = element_text(size = 10),  
+                   strip.background = element_blank()),
+             ncol=1)
+#+END_SRC
+
+#+RESULTS[(2022-08-31 13:53:17) 270753cedc53a63a726e615257e8cb422c289897]:
+[[file:./simulation/output/simultation-results-nfollic.png]]
+
 
 [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#web-appendix][Back to top]]
 
@@ -227,26 +328,29 @@ grid.arrange(ggplot(tmle.results) + theme_bw() +
 
 #+BEGIN_SRC R :results file graphics :file ./simulation/output/survtmle-results.png :exports none :session *R* :cache yes :height 1100 :width 500
 grid.arrange(ggplot(survtmle.results) + theme_bw() +   
-             geom_point(aes(x = grid.length.used, y = as.numeric(bias.survtmle)), shape = 4) + 
-             facet_grid(initial ~ setting) +
-             geom_hline(yintercept = 0, linetype = "dashed", col = "red", alpha = 0.5) +
-             ylab("bias") + xlab("grid length used") +
-             theme(strip.text = element_text(size = 9.5),
-                   strip.background = element_blank()),
-             ggplot(survtmle.results) + theme_bw() +
-             geom_point(aes(x = grid.length.used, y = as.numeric(cov.survtmle)), shape = 4) +
-             facet_grid(initial ~ setting) +
-             geom_hline(yintercept = 0.95, linetype = "dashed", col = "red", alpha = 0.5) +
-             ylab("coverage") + xlab("grid length used") +
-             theme(strip.text = element_text(size = 9.5),
-                   strip.background = element_blank()),
-             ggplot(survtmle.results) + theme_bw() +
-             geom_point(aes(x = grid.length.used, y = as.numeric(sd.survtmle)/as.numeric(se.survtmle)), shape = 4) +
-             facet_grid(initial ~ setting) +
-             geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
-             ylab("SD/SE") + xlab("grid length used") +
-             theme(strip.text = element_text(size = 9.5),  
-                   strip.background = element_blank())) 
+             geom_point(aes(x = grid.length.used, y = as.numeric(bias.survtmle)), shape = as.factor(sample.size))) +
+  scale_shape_manual("sample size", values=c(4, 8, 9)) +  
+  facet_grid(initial ~ setting) +
+  geom_hline(yintercept = 0, linetype = "dashed", col = "red", alpha = 0.5) +
+  ylab("bias") + xlab("grid length used") +
+  theme(strip.text = element_text(size = 9.5),
+        strip.background = element_blank()),
+ggplot(survtmle.results) + theme_bw() +
+  geom_point(aes(x = grid.length.used, y = as.numeric(cov.survtmle)), shape = as.factor(sample.size))) +
+                                                                                                         scale_shape_manual("sample size", values=c(4, 8, 9)) + 
+                                                                                                         facet_grid(initial ~ setting) +
+                                                                                                         geom_hline(yintercept = 0.95, linetype = "dashed", col = "red", alpha = 0.5) +
+                                                                                                         ylab("coverage") + xlab("grid length used") +
+                                                                                                         theme(strip.text = element_text(size = 9.5),
+                                                                                                               strip.background = element_blank()),
+ggplot(survtmle.results) + theme_bw() +
+  geom_point(aes(x = grid.length.used, y = as.numeric(sd.survtmle)/as.numeric(se.survtmle)), shape = as.factor(sample.size))) +
+                                                                                                                                scale_shape_manual("sample size", values=c(4, 8, 9)) + 
+                                                                                                                                facet_grid(initial ~ setting) +
+                                                                                                                                geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
+                                                                                                                                ylab("SD/SE") + xlab("grid length used") +
+                                                                                                                                theme(strip.text = element_text(size = 9.5),  
+                                                                                                                                      strip.background = element_blank())) 
 #+END_SRC
 
 #+RESULTS[(2022-07-21 16:07:53) 6dd97e0ec4c333fc0320db02080f96820d7927aa]:
