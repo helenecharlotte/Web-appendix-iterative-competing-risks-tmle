@@ -18,6 +18,7 @@ Data:
 
 Simulation results: 
 - [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#simulation-results][All results]]
+- [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#sensitivity-to-hyperparameter-selection-(HAL)][Sensitivity to hyperparameter selection (HAL)]]
 - [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#more-results-for-survtmle][Extra results for survtmle (varying grid)]]
 
 Sample code:
@@ -327,7 +328,7 @@ grid.arrange(ggplot(tmle.results[sample.size==sim.sample]) + theme_bw() +
 
 [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#web-appendix][Back to top]]
 
-*** Sensitivity to hyperparameter selection
+*** Sensitivity to hyperparameter selection (HAL)
 
 #+BEGIN_SRC R :results file graphics :file ./simulation/output/simultation-sensitivity-results-n2000.png :exports none :session *R* :cache yes :height 1500 :width 500
 tmle.results[, cut.time:=rep(contmle.results[, unique(cut.time)], length=nrow(tmle.results))]
