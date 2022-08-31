@@ -18,7 +18,7 @@ Data:
 
 Simulation results: 
 - [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#simulation-results][All results]]
-- [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#sensitivity-to-hyperparameter-selection-(HAL)][Sensitivity to hyperparameter selection (HAL)]]
+- [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#sensitivity-to-hyperparameter-selection-HAL][Sensitivity to hyperparameter selection (HAL)]]
 - [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#more-results-for-survtmle][Extra results for survtmle (varying grid)]]
 
 Sample code:
