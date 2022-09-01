@@ -333,6 +333,60 @@ grid.arrange(ggplot(tmle.results[sample.size==sim.sample]) + theme_bw() +
 
 *** Sensitivity to hyperparameter selection (HAL)
 
+
+
+
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results none :exports none  :session *R* :cache yes
+M <- 500
+sim.sample <- 2000#1000#2000#nrow(follic)#2000#1000#nrow(follic)
+
+hyper.parameters <- data.table(expand.grid(cut.time = c(10,15,20,25,30,35),
+                                           cut.time.A = c(5,10,15,20,25,30,35),
+                                           cut.covars = c(5,10,15,20),
+                                           cut.two.way = c(0,5,10)))
+
+hyper.parameters <- hyper.parameters[cut.time.A <= cut.time & cut.two.way <= cut.covars]
+
+hyper.parameters[, cut.time.A := sapply(cut.time, function(x) min(x, 15))]
+hyper.parameters[, cut.time.covar := cut.time.A]
+
+hyper.parameters <- unique(hyper.parameters, by = names(hyper.parameters))
+
+hyper.parameters <- unique(hyper.parameters[cut.covars %in% c(5,10,15) & !(cut.covars %in% c(10,15) & cut.two.way == 5)], by = names(hyper.parameters))
+
+hyper.parameters <- hyper.parameters[rev(order(hyper.parameters[["cut.covars"]]))]
+
+contmle.results <- do.call("rbind", lapply(list("Randomized treatment + independent censoring", "Informative censoring"), function(outer.which) {
+  out.inner <- data.table(do.call("rbind", lapply(1:nrow(hyper.parameters), function(hp.row) {
+    try(c(unlist(follic.output.fun(M = M,
+                                   randomized.treatment = outer.which == "Randomized treatment + independent censoring",
+                                   observed.treatment = outer.which != "Randomized treatment + independent censoring",
+                                   informative.censoring = outer.which != "Randomized treatment + independent censoring",
+                                   observed.covars = TRUE,
+                                   cut.time = hyper.parameters[hp.row, "cut.time"][[1]],
+                                   cut.time.A = hyper.parameters[hp.row, "cut.time.A"][[1]],
+                                   cut.time.covar = hyper.parameters[hp.row, "cut.time.covar"][[1]],
+                                   cut.covars = hyper.parameters[hp.row, "cut.covars"][[1]],
+                                   cut.two.way = hyper.parameters[hp.row, "cut.two.way"][[1]],
+                                   hal.sl = FALSE,
+                                   fit.initial = "hal",
+                                   sim.sample = sim.sample)),
+          cut.time = hyper.parameters[hp.row, "cut.time"][[1]],
+          cut.time.A = hyper.parameters[hp.row, "cut.time.A"][[1]],
+          cut.time.covar = hyper.parameters[hp.row, "cut.time.covar"][[1]],
+          cut.covars = hyper.parameters[hp.row, "cut.covars"][[1]],
+          cut.two.way = hyper.parameters[hp.row, "cut.two.way"][[1]]))
+  })))
+  out.inner[, setting := outer.which]
+  return(out.inner[substr(bias.tmle, 1, 5) != "Error"])
+}))
+
+contmle.results[, cut.covars := as.character(cut.covars)]
+contmle.results[, cut.two.way := as.character(cut.two.way)]
+#+END_SRC
+
+
 #+BEGIN_SRC R :results file graphics :file ./simulation/output/simultation-sensitivity-results-n2000.png :exports none :session *R* :cache yes :height 1500 :width 500
 tmle.results[, cut.time:=rep(contmle.results[, unique(cut.time)], length=nrow(tmle.results))]
 grid.arrange(ggplot(contmle.results) + theme_bw() +
@@ -395,90 +449,58 @@ grid.arrange(ggplot(contmle.results) + theme_bw() +
 [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#web-appendix][Back to top]]
 
 
-** Simulation results
-
-
-#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
-#+BEGIN_SRC R  :results none :exports none  :session *R* :cache yes
-M <- 500
-sim.sample <- 2000#1000#2000#nrow(follic)#2000#1000#nrow(follic)
-
-hyper.parameters <- data.table(expand.grid(cut.time = c(10,15,20,25,30,35),
-                                           cut.time.A = c(5,10,15,20,25,30,35),
-                                           cut.covars = c(5,10,15,20),
-                                           cut.two.way = c(0,5,10)))
-
-hyper.parameters <- hyper.parameters[cut.time.A <= cut.time & cut.two.way <= cut.covars]
-
-hyper.parameters[, cut.time.A := sapply(cut.time, function(x) min(x, 15))]
-hyper.parameters[, cut.time.covar := cut.time.A]
-
-hyper.parameters <- unique(hyper.parameters, by = names(hyper.parameters))
-
-hyper.parameters <- unique(hyper.parameters[cut.covars %in% c(5,10,15) & !(cut.covars %in% c(10,15) & cut.two.way == 5)], by = names(hyper.parameters))
-
-hyper.parameters <- hyper.parameters[rev(order(hyper.parameters[["cut.covars"]]))]
-
-contmle.results <- do.call("rbind", lapply(list("Randomized treatment + independent censoring", "Informative censoring"), function(outer.which) {
-  out.inner <- data.table(do.call("rbind", lapply(1:nrow(hyper.parameters), function(hp.row) {
-    try(c(unlist(follic.output.fun(M = M,
-                                   randomized.treatment = outer.which == "Randomized treatment + independent censoring",
-                                   observed.treatment = outer.which != "Randomized treatment + independent censoring",
-                                   informative.censoring = outer.which != "Randomized treatment + independent censoring",
-                                   observed.covars = TRUE,
-                                   cut.time = hyper.parameters[hp.row, "cut.time"][[1]],
-                                   cut.time.A = hyper.parameters[hp.row, "cut.time.A"][[1]],
-                                   cut.time.covar = hyper.parameters[hp.row, "cut.time.covar"][[1]],
-                                   cut.covars = hyper.parameters[hp.row, "cut.covars"][[1]],
-                                   cut.two.way = hyper.parameters[hp.row, "cut.two.way"][[1]],
-                                   hal.sl = FALSE,
-                                   fit.initial = "hal",
-                                   sim.sample = sim.sample)),
-          cut.time = hyper.parameters[hp.row, "cut.time"][[1]],
-          cut.time.A = hyper.parameters[hp.row, "cut.time.A"][[1]],
-          cut.time.covar = hyper.parameters[hp.row, "cut.time.covar"][[1]],
-          cut.covars = hyper.parameters[hp.row, "cut.covars"][[1]],
-          cut.two.way = hyper.parameters[hp.row, "cut.two.way"][[1]]))
-  })))
-  out.inner[, setting := outer.which]
-  return(out.inner[substr(bias.tmle, 1, 5) != "Error"])
-}))
-
-contmle.results[, cut.covars := as.character(cut.covars)]
-contmle.results[, cut.two.way := as.character(cut.two.way)]
-#+END_SRC
-
-
 *** More results for survtmle
 
 #+BEGIN_SRC R :results file graphics :file ./simulation/output/survtmle-results.png :exports none :session *R* :cache yes :height 1100 :width 500
+sim.sample <- 1000  
+survtmle.results <- do.call("rbind", lapply(c(nrow(follic), 1000, 2000), function(sim.sample) {
+  out.outer <- do.call("rbind", lapply(list("Randomized treatment + independent censoring", "Informative censoring"), function(outer.which) {
+    do.call("rbind", lapply(list((0:10)*4, (0:20)*2, (0:40), (0:80)/2), function(inner.grid) {
+      out.inner <- data.table(do.call("rbind", lapply(list("glm", "sl"), function(inner.sl) {
+        try(unlist(follic.output.survtmle(M = 500,
+                                          randomized.treatment = outer.which == "Randomized treatment + independent censoring",
+                                          observed.treatment = outer.which != "Randomized treatment + independent censoring",
+                                          informative.censoring = outer.which != "Randomized treatment + independent censoring",
+                                          observed.covars = TRUE,
+                                          sl.survtmle = inner.sl == "sl", 
+                                          grid.survtmle = inner.grid,  
+                                          sim.sample = sim.sample)))
+      })))
+      out.inner[, initial := c("GLM", "SL")][, grid.length.used := length(inner.grid)][, setting := outer.which]
+      return(out.inner[substr(bias.survtmle, 1, 5) != "Error"])
+    }))
+  }))
+  out.outer[, sample.size:=sim.sample]
+  return(out.outer)
+}))
+ 
 grid.arrange(ggplot(survtmle.results) + theme_bw() +   
-             geom_point(aes(x = grid.length.used, y = as.numeric(bias.survtmle)), shape = as.factor(sample.size))) +
-  scale_shape_manual("sample size", values=c(4, 8, 9)) +  
-  facet_grid(initial ~ setting) +
-  geom_hline(yintercept = 0, linetype = "dashed", col = "red", alpha = 0.5) +
-  ylab("bias") + xlab("grid length used") +
-  theme(strip.text = element_text(size = 9.5),
-        strip.background = element_blank()),
-ggplot(survtmle.results) + theme_bw() +
-  geom_point(aes(x = grid.length.used, y = as.numeric(cov.survtmle)), shape = as.factor(sample.size))) +
-                                                                                                         scale_shape_manual("sample size", values=c(4, 8, 9)) + 
-                                                                                                         facet_grid(initial ~ setting) +
-                                                                                                         geom_hline(yintercept = 0.95, linetype = "dashed", col = "red", alpha = 0.5) +
-                                                                                                         ylab("coverage") + xlab("grid length used") +
-                                                                                                         theme(strip.text = element_text(size = 9.5),
-                                                                                                               strip.background = element_blank()),
-ggplot(survtmle.results) + theme_bw() +
-  geom_point(aes(x = grid.length.used, y = as.numeric(sd.survtmle)/as.numeric(se.survtmle)), shape = as.factor(sample.size))) +
-                                                                                                                                scale_shape_manual("sample size", values=c(4, 8, 9)) + 
-                                                                                                                                facet_grid(initial ~ setting) +
-                                                                                                                                geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
-                                                                                                                                ylab("SD/SE") + xlab("grid length used") +
-                                                                                                                                theme(strip.text = element_text(size = 9.5),  
-                                                                                                                                      strip.background = element_blank())) 
+             geom_point(aes(x = grid.length.used, y = as.numeric(bias.survtmle), shape = as.factor(sample.size))) +
+             scale_shape_manual("sample size", values=c(4, 8, 9)) +  
+             facet_grid(initial ~ setting) +
+             geom_hline(yintercept = 0, linetype = "dashed", col = "red", alpha = 0.5) +
+             ylab("bias") + xlab("grid length used") +
+             theme(strip.text = element_text(size = 9.5),
+                   strip.background = element_blank()),
+             ggplot(survtmle.results) + theme_bw() +
+             geom_point(aes(x = grid.length.used, y = as.numeric(cov.survtmle), shape = as.factor(sample.size))) +
+             scale_shape_manual("sample size", values=c(4, 8, 9)) + 
+             facet_grid(initial ~ setting) +
+             geom_hline(yintercept = 0.95, linetype = "dashed", col = "red", alpha = 0.5) +
+             ylab("coverage") + xlab("grid length used") +
+             theme(strip.text = element_text(size = 9.5),
+                   strip.background = element_blank()),
+             ggplot(survtmle.results) + theme_bw() +
+             geom_point(aes(x = grid.length.used, y = as.numeric(sd.survtmle)/as.numeric(se.survtmle), shape = as.factor(sample.size))) +
+             scale_shape_manual("sample size", values=c(4, 8, 9)) + 
+             facet_grid(initial ~ setting) +
+             geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
+             ylab("SD/SE") + xlab("grid length used") +
+             theme(strip.text = element_text(size = 9.5),  
+                   strip.background = element_blank()))  
 #+END_SRC
 
-#+RESULTS[(2022-07-21 16:07:53) 6dd97e0ec4c333fc0320db02080f96820d7927aa]:
+#+RESULTS[(2022-09-01 08:38:54) f9b538b64b74fad465013345cecd13509785edfe]:
 [[file:./simulation/output/survtmle-results.png]]
 
 [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#web-appendix][Back to top]]
