@@ -25,6 +25,10 @@ Simulation results:
 Sample code:
 - [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#sample-code][Sample code]]
 
+Analysis of follic data:
+- [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#follic-analysis][Code]]
+- [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#follic-data-results][Results]]
+
 Fitting baseline hazard by Weibull distributions with parameters
 changing over time:
 
