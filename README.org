@@ -537,6 +537,155 @@ contmle(sim.follic, estimation=list("outcome"=list(fit="hal",
 
 [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#web-appendix][Back to top]]
 
+** Follic analysis
+
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results none :exports code  :session *R* :cache yes  
+follic.cox.F1.ate <- contmle(follic, estimation=list("outcome"=list(fit="cox",
+                                                                    model=Surv(time, status==1)~chemo+stage+age+hgb+age+hgb,
+                                                                    lambda.cvs=seq(0.008, 0.02, length=10)),
+                                                     "cens"=list(fit="cox",
+                                                                 model=Surv(time, status==0)~chemo+stage+age+hgb),
+                                                     "cr2"=list(fit="cox",
+                                                                model=Surv(time, status==2)~chemo+stage+age+hgb)
+                                                     ),
+                             treat.model=chemo~stage+hgb+age,
+                             treat.effect="ate",
+                             hal.screening=TRUE,
+                             output.km=TRUE,
+                             verbose=TRUE,
+                             iterative=TRUE,
+                             cut.time=18,
+                             cut.time.covar=15,
+                             cut.time.A=15,
+                             cut.covars=15,
+                             cut.two.way=10,
+                             V=3, lambda.cvs=seq(0.1, 0.03, length=10), maxit=1e5, penalize.time=FALSE,
+                             tau=10, target=1)
+
+
+follic.hal.F1.ate <- contmle(follic, estimation=list("outcome"=list(fit="hal",
+                                                                    model=Surv(time, status==1)~chemo+stage+age+hgb+age+hgb,
+                                                                    lambda.cvs=seq(0.008, 0.02, length=10)),
+                                                     "cens"=list(fit="hal",
+                                                                 model=Surv(time, status==0)~chemo+stage+age+hgb),
+                                                     "cr2"=list(fit="hal",
+                                                                model=Surv(time, status==2)~chemo+stage+age+hgb)
+                                                     ),
+                             treat.model=chemo~stage+hgb+age,
+                             treat.effect="ate",
+                             hal.screening=TRUE,
+                             output.km=TRUE,
+                             verbose=TRUE,
+                             iterative=TRUE,
+                             cut.time=18,
+                             cut.time.covar=15,
+                             cut.time.A=15,
+                             cut.covars=15,
+                             cut.two.way=10,
+                             V=3, lambda.cvs=seq(0.1, 0.03, length=10), maxit=1e5, penalize.time=FALSE,
+                             tau=10, target=1)
+
+follic.hal.sl.F1.ate <- contmle(follic, estimation=list("outcome"=list(fit="hal",
+                                                                       model=Surv(time, status==1)~chemo+stage+age+hgb+age+hgb,
+                                                                       lambda.cvs=seq(0.008, 0.02, length=10)),
+                                                        "cens"=list(fit="hal",
+                                                                    model=Surv(time, status==0)~chemo+stage+age+hgb),
+                                                        "cr2"=list(fit="hal",
+                                                                   model=Surv(time, status==2)~chemo+stage+age+hgb)
+                                                        ),
+                                treat.model=chemo~stage+hgb+age,
+                                treat.effect="ate",
+                                output.km=TRUE,
+                                verbose=TRUE,
+                                iterative=TRUE,
+                                cut.time=18,
+                                cut.time.covar=15,
+                                cut.time.A=15,
+                                cut.covars=15,
+                                cut.two.way=10,
+                                V=3, lambda.cvs=seq(0.1, 0.03, length=10), maxit=1e5, penalize.time=FALSE,
+                                hal.sl = TRUE,
+                                hal.screening = TRUE,
+                                tau=10, target=1)
+
+follic.rf.F1.ate <- contmle(follic, estimation=list("outcome"=list(fit="rf",
+                                                                    model=Surv(time, status==1)~chemo+stage+age+hgb+age+hgb,
+                                                                    lambda.cvs=seq(0.008, 0.02, length=10)),
+                                                     "cens"=list(fit="rf",
+                                                                 model=Surv(time, status==0)~chemo+stage+age+hgb),
+                                                     "cr2"=list(fit="rf",
+                                                                model=Surv(time, status==2)~chemo+stage+age+hgb)
+                                                     ),
+                             treat.model=chemo~stage+hgb+age,
+                             treat.effect="ate",
+                             output.km=TRUE,
+                             verbose=TRUE,
+                             iterative=TRUE,
+                             V=3, lambda.cvs=seq(0.1, 0.03, length=10), maxit=1e5, penalize.time=FALSE,
+                             tau=10, target=1)
+#+END_SRC    
+
+[[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#web-appendix][Back to top]]
+
+** Follic data results
+
+Poisson HAL (fixed partitioning) approach:
+
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results output :exports output  :session *R:2* :cache yes  
+follic.hal.F1.ate$tmle$F1 
+#+END_SRC    
+
+#+RESULTS[(2022-09-09 14:05:08) 997ba8063cbc4ade17bda17e58e4fae0c33f1290]:
+:          tau=10    
+: tmle.est -0.0534139
+: tmle.se  0.06708393
+
+Poisson HAL (cross-validated) approach:
+
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results output :exports output  :session *R:2* :cache yes  
+follic.hal.sl.F1.ate$tmle$F1 
+#+END_SRC    
+
+#+RESULTS[(2022-09-09 14:05:22) 2cfd42ffbb29241f2f59e32de5877f6dfcb96773]:
+:          tau=10     
+: tmle.est -0.05048722
+: tmle.se  0.06996858
+
+Cox approach (before and after TMLE step):
+
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results output :exports output  :session *R:2* :cache yes
+print("Before TMLE:")
+follic.cox.F1.ate$init$F1
+print("After TMLE:")
+follic.cox.F1.ate$tmle$F1 
+#+END_SRC    
+
+#+RESULTS[(2022-09-09 14:06:16) 79e2812d1dab3829bb69bf9a27e65b77d9033674]:
+: [1] "Before TMLE:"
+:               tau=10
+: init.est -0.09200635
+: init.se   0.07478107
+: [1] "After TMLE:"
+:          tau=10     
+: tmle.est -0.03349503
+: tmle.se  0.07394969
+
+Random forest approach:
+
+#+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
+#+BEGIN_SRC R  :results output :exports output  :session *R:2* :cache yes  
+follic.rf.F1.ate$tmle$F1 
+#+END_SRC    
+
+#+RESULTS[(2022-09-09 14:04:51) 623351a485112718d0ea123383fcf379afa02470]:
+:          tau=10     
+: tmle.est -0.05566238
+: tmle.se  0.0675828
+
 
 ** Baseline hazard estimation
 
@@ -559,10 +708,7 @@ bhaz.cox <- contmle(follic, estimation=list("outcome"=list(fit="cox",
                                             ),
                     treat.model=chemo~stage+hgb+age,
                     treat.effect="ate",
-                    no.small.steps=500,
-                    sl.models=list(mod1=list(Surv(time, status==1)~chemo+stage+hgb+age, t0 = (1:50)/2000),
-                                   mod2=list(Surv(time, status==1)~chemo+stage+hgb+age+age.stage, t0 = (1:50)/2000),
-                                   mod3=list(Surv(time, status==1)~chemo+stage+hgb+age+age.stage+stage.chemo, t0 = (1:50)/2000)), 
+                    no.small.steps=500, 
                     output.km=TRUE,
                     output.bhaz=TRUE, 
                     V=3, lambda.cvs=seq(0.1, 0.03, length=10), maxit=1e5, penalize.time=FALSE,
@@ -582,7 +728,6 @@ bhaz.uninformative.cens <-
                                   ),
           treat.model=chemo~stage+hgb+age,
           treat.effect="ate", no.small.steps=500,
-          sl.models=list(mod1=list(Surv(time, status==1)~chemo+stage+hgb+age, t0 = (1:50)/2000)),
           output.km=TRUE, output.bhaz=TRUE, V=3,
           lambda.cvs=seq(0.1, 0.03, length=10), maxit=1e5, penalize.time=FALSE,
           verbose=TRUE, iterative=TRUE, tau=20, target=1)
@@ -1001,7 +1146,9 @@ bhazs.long[time>=exp(log.t3.1) & time<=exp(log.t4.1) & chemo=="chemo = 1" & stat
            fit.chaz:=exp(gamma.status1.t4.1*log(lambda.status1.t4.1) + gamma.status1.t4.1*log(time))]
 bhazs.long[time>=exp(log.t3.1) & time<=exp(log.t4.1) & chemo=="chemo = 0" & status=="status = 1",
            fit.chaz:=exp(gamma.status1.t4.0*log(lambda.status1.t4.0) + gamma.status1.t4.0*log(time))]
- 
+
+bhazs.long1 <- bhazs.long[, fit.chaz1:=fit.chaz][status == "status = 1", variable2 == "chaz", c("chemo", "time", "fit.chaz1")]
+
 ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 1"]) +
   #geom_point(aes(x=time, y=value)) +
   geom_line(aes(time, y=fit.chaz, linetype=chemo))+
@@ -1245,7 +1392,9 @@ bhazs.long[time>=exp(log.t2.2) & chemo=="chemo = 1" & status=="status = 2",
            fit.chaz:=exp(gamma.status2.t3.1*log(lambda.status2.t3.1) + gamma.status2.t3.1*log(time))]
 bhazs.long[time>=exp(log.t2.2) & chemo=="chemo = 0" & status=="status = 2",
            fit.chaz:=exp(gamma.status2.t3.0*log(lambda.status2.t3.0) + gamma.status2.t3.0*log(time))]
- 
+
+bhazs.long2 <- bhazs.long[, fit.chaz2:=fit.chaz][status == "status = 2", variable2 == "chaz", c("chemo", "time", "fit.chaz2")]
+
 ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 2"]) +
   #geom_point(aes(x=time, y=value)) +
   geom_line(aes(time, y=fit.chaz, linetype=chemo))+
@@ -1262,6 +1411,28 @@ ggplot(bhazs.long[!is.na(fit.chaz) & status=="status = 2"]) +
 
 
 [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#web-appendix][Back to top]]
+
+
+#+BEGIN_SRC R :results file graphics :file ./figures/fig-F1-time.png :exports none :session *R* :cache yes :width 500 :height 500
+bhazs.long12 <- merge(bhazs.long1[, dhaz1:=diff(c(0,fit.chaz1)), by="chemo"],
+                      bhazs.long2[, dhaz2:=diff(c(0,fit.chaz2)), by="chemo"], by=c("chemo", "time"))
+bhazs.long12[, surv1:=c(1, exp(-fit.chaz1-fit.chaz2)[-.N]), by="chemo"]
+bhazs.long12[, F1:=cumsum(surv1*dhaz1), by="chemo"]
+bhazs.long12[, F2:=cumsum(surv1*dhaz2), by="chemo"]
+bhazs.long12[, S:=1-F1-F2, by="chemo"]
+bhazs.12 <- melt(bhazs.long12, id.vars=c("chemo", "time"))[variable%in%c("F1", "F2", "S")][variable=="F1", variable:="F[1]"][variable=="F2", variable:="F[2]"]
+
+ggplot(bhazs.12[time<=2.5]) +
+  #geom_point(aes(x=time, y=value)) +
+  geom_line(aes(x=time, y=value, linetype=chemo))+
+  facet_wrap(.~variable, scales="free_y", labeller = label_parsed) + 
+  theme_bw()+
+  theme(axis.text=element_text(size=12),axis.title=element_text(size=18),
+        strip.text = element_text(size=16), 
+        plot.title = element_text(size = 16, hjust = -0.3),
+        strip.background = element_blank())+
+  ylab("absolute risk") + ggtitle("Resulting absolute risk functions:") 
+#+END_SRC
 
 *** Censoring events (covariate dependent)
 
