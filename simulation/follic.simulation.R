@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (11:53) 
 ## Version: 
-## Last-Updated: Aug 24 2022 (19:24) 
+## Last-Updated: Sep  9 2022 (13:18) 
 ##           By: Helene
-##     Update #: 683
+##     Update #: 686
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -144,8 +144,15 @@ run.follic(M = 500, verbose = FALSE, fit.initial = "rf", no.cores = 1,
            observed.covars = FALSE, informative.censoring = FALSE, sim.sample = 1000)
 
 
-run.follic(M = 1, verbose = FALSE, fit.initial = "rf", no.cores = 1,
-           observed.covars = FALSE, informative.censoring = FALSE, sim.sample = 1000)
+run.follic(M = 1, verbose = TRUE, fit.initial = "rf", no.cores = 1, parameter = "1",
+           observed.covars = TRUE, informative.censoring = TRUE, sim.sample = 1000)
+
+run.follic(M = 1, verbose = TRUE, fit.initial = "rf", no.cores = 1, parameter = "0",
+           observed.covars = TRUE, informative.censoring = TRUE, sim.sample = 1000)
+
+run.follic(M = 1, verbose = TRUE, fit.initial = "rf", no.cores = 1, parameter = "ate",
+           observed.covars = TRUE, informative.censoring = TRUE, sim.sample = 1000)
+
 
 run.follic(M = 500, verbose = TRUE, fit.initial = "cox", no.cores = no.cores,
            observed.covars = FALSE, informative.censoring = TRUE, sim.sample = 1000)

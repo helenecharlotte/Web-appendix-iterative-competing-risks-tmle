@@ -501,10 +501,10 @@ grid.arrange(ggplot(survtmle.results) + theme_bw() +
              geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
              ylab("SD/SE") + xlab("grid length used") +
              theme(strip.text = element_text(size = 9.5),  
-                   strip.background = element_blank()))  
+                   strip.background = element_blank()))    
 #+END_SRC
 
-#+RESULTS[(2022-09-01 08:38:54) f9b538b64b74fad465013345cecd13509785edfe]:
+#+RESULTS[(2022-09-11 11:41:21) 8cf60b197eb1294bf0c9b3aaf6339ddacd48395b]:
 [[file:./simulation/output/survtmle-results.png]]
 
 [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#web-appendix][Back to top]]

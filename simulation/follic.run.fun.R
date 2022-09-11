@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (12:12) 
 ## Version: 
-## Last-Updated: Aug 16 2022 (11:52) 
+## Last-Updated: Sep 10 2022 (13:54) 
 ##           By: Helene
-##     Update #: 76
+##     Update #: 97
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -130,7 +130,7 @@ run.follic <- function(M = 1, no_cores = 1, print.m = TRUE, seed.init = 100, no.
                                                         adjustVars = data.frame(hgb = sim.follic[["hgb"]],
                                                                                 age = sim.follic[["age"]],
                                                                                 stage = sim.follic[["stage"]]),
-                                                        t0 = 10,
+                                                        t0 = floor(tau*((length(grid.survtmle)-1)/40)),
                                                         SL.trt = c("SL.glm","SL.mean","SL.step","SL.ranger"),
                                                         SL.ftime = c("SL.glm","SL.mean","SL.step","SL.ranger"),
                                                         SL.ctime = c("SL.glm","SL.mean","SL.step","SL.ranger"),
@@ -147,7 +147,7 @@ run.follic <- function(M = 1, no_cores = 1, print.m = TRUE, seed.init = 100, no.
                                                         adjustVars = data.frame(hgb = sim.follic[["hgb"]],
                                                                                 age = sim.follic[["age"]],
                                                                                 stage = sim.follic[["stage"]]),
-                                                        t0 = 10,
+                                                        t0 = floor(tau*((length(grid.survtmle)-1)/40)),
                                                         glm.trt = "hgb + age + stage",
                                                         #glm.ftime = "hgb + age + stage + as.factor(t)*trt",
                                                         glm.ftime = "hgb + age + stage + t*trt",
@@ -160,10 +160,10 @@ run.follic <- function(M = 1, no_cores = 1, print.m = TRUE, seed.init = 100, no.
                                                         adjustVars = data.frame(hgb = sim.follic[["hgb"]],
                                                                                 age = sim.follic[["age"]],
                                                                                 stage = sim.follic[["stage"]]),
-                                                        t0 = 10,
+                                                        t0 = floor(tau*((length(grid.survtmle)-1)/40)),
                                                         glm.trt = "hgb + age + stage",
                                                         glm.ftime = "hgb + age + stage + t*trt",
-                                                        #glm.ctime = "as.factor(t)*trt",                         
+                                                        #glm.ctime = "t*trt",                         
                                                         ftypeOfInterest = 1)
                            }
 
