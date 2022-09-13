@@ -466,7 +466,7 @@ survtmle.results <- do.call("rbind", lapply(c(nrow(follic), 1000, 2000), functio
                                           observed.treatment = outer.which != "Randomized treatment + independent censoring",
                                           informative.censoring = outer.which != "Randomized treatment + independent censoring",
                                           observed.covars = TRUE,
-                                          sl.survtmle = inner.sl == "sl", 
+                                          sl.survtmle = inner.sl == "sl",  
                                           grid.survtmle = inner.grid,  
                                           sim.sample = sim.sample)))
       })))
@@ -504,7 +504,7 @@ grid.arrange(ggplot(survtmle.results) + theme_bw() +
                    strip.background = element_blank()))    
 #+END_SRC
 
-#+RESULTS[(2022-09-11 11:41:21) 8cf60b197eb1294bf0c9b3aaf6339ddacd48395b]:
+#+RESULTS[(2022-09-13 08:29:46) 1ecce221a0831baafa0dc89da3a3d2b7a1a7eab5]:
 [[file:./simulation/output/survtmle-results.png]]
 
 [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#web-appendix][Back to top]]
