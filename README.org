@@ -520,7 +520,7 @@ sim.follic <- simulate.follic.3(seed = 100,
                                 informative.censoring = TRUE)
 #+END_SRC    
 
-Apply continuous-time TMLE with baseline estimation based on the Poisson-HAL: 
+Apply continuous-time TMLE with initial estimation based on the Poisson-HAL: 
 
 #+ATTR_LATEX: :options otherkeywords={}, deletekeywords={}
 #+BEGIN_SRC R  :results none :exports code  :session *R* :cache yes  
