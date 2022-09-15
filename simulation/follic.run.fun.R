@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (12:12) 
 ## Version: 
-## Last-Updated: Sep 10 2022 (13:54) 
+## Last-Updated: Sep 15 2022 (16:58) 
 ##           By: Helene
-##     Update #: 97
+##     Update #: 110
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -122,6 +122,13 @@ run.follic <- function(M = 1, no_cores = 1, print.m = TRUE, seed.init = 100, no.
                            #-- discretize time variable: 
                            sim.follic[, dtime := as.numeric(cut(time, breaks = grid.survtmle))]
 
+                           glm.time <- paste0(paste0(sapply(1:floor(tau*((length(grid.survtmle)-1)/40)), function(t) {
+                               paste0("I(t==", t, ")")
+                           }), collapse = "+"), "+",
+                           paste0(sapply(1:floor(tau*((length(grid.survtmle)-1)/40)), function(t) {
+                               paste0("I(trt*t==", t, ")")
+                           }), collapse = "+"), "+ trt + hgb + stage + age + age:stage")
+
                            #-- apply survtmle:
                            if (sl.survtmle) {
                                fit.survtmle <- survtmle(ftime = sim.follic[["dtime"]],
@@ -149,9 +156,8 @@ run.follic <- function(M = 1, no_cores = 1, print.m = TRUE, seed.init = 100, no.
                                                                                 stage = sim.follic[["stage"]]),
                                                         t0 = floor(tau*((length(grid.survtmle)-1)/40)),
                                                         glm.trt = "hgb + age + stage",
-                                                        #glm.ftime = "hgb + age + stage + as.factor(t)*trt",
-                                                        glm.ftime = "hgb + age + stage + t*trt",
-                                                        glm.ctime = "hgb + age + stage + t*trt",                         
+                                                        glm.ftime = glm.time,
+                                                        glm.ctime = glm.time,                         
                                                         ftypeOfInterest = 1)
                            } else {
                                fit.survtmle <- survtmle(ftime = sim.follic[["dtime"]],
@@ -162,8 +168,8 @@ run.follic <- function(M = 1, no_cores = 1, print.m = TRUE, seed.init = 100, no.
                                                                                 stage = sim.follic[["stage"]]),
                                                         t0 = floor(tau*((length(grid.survtmle)-1)/40)),
                                                         glm.trt = "hgb + age + stage",
-                                                        glm.ftime = "hgb + age + stage + t*trt",
-                                                        #glm.ctime = "t*trt",                         
+                                                        glm.ftime = glm.time,
+                                                        glm.ctime = glm.time,                         
                                                         ftypeOfInterest = 1)
                            }
 
