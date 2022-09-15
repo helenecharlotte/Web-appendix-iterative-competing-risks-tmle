@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (12:12) 
 ## Version: 
-## Last-Updated: Sep 15 2022 (16:58) 
+## Last-Updated: Sep 15 2022 (18:33) 
 ##           By: Helene
-##     Update #: 110
+##     Update #: 111
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -127,7 +127,7 @@ run.follic <- function(M = 1, no_cores = 1, print.m = TRUE, seed.init = 100, no.
                            }), collapse = "+"), "+",
                            paste0(sapply(1:floor(tau*((length(grid.survtmle)-1)/40)), function(t) {
                                paste0("I(trt*t==", t, ")")
-                           }), collapse = "+"), "+ trt + hgb + stage + age + age:stage")
+                           }), collapse = "+"), "+ trt + hgb + stage + age")
 
                            #-- apply survtmle:
                            if (sl.survtmle) {
