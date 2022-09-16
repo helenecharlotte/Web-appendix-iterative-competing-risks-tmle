@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (12:12) 
 ## Version: 
-## Last-Updated: Sep 15 2022 (18:33) 
+## Last-Updated: Sep 16 2022 (08:48) 
 ##           By: Helene
-##     Update #: 111
+##     Update #: 118
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -33,6 +33,7 @@ run.follic <- function(M = 1, no_cores = 1, print.m = TRUE, seed.init = 100, no.
                        cut.two.way=10,
                        fit.survtmle = FALSE,
                        grid.survtmle = 0:40,
+                       survtmle.glm.misspecify = FALSE,
                        sl.survtmle = FALSE) {
 
     if (get.truth) {
@@ -122,12 +123,21 @@ run.follic <- function(M = 1, no_cores = 1, print.m = TRUE, seed.init = 100, no.
                            #-- discretize time variable: 
                            sim.follic[, dtime := as.numeric(cut(time, breaks = grid.survtmle))]
 
-                           glm.time <- paste0(paste0(sapply(1:floor(tau*((length(grid.survtmle)-1)/40)), function(t) {
-                               paste0("I(t==", t, ")")
-                           }), collapse = "+"), "+",
-                           paste0(sapply(1:floor(tau*((length(grid.survtmle)-1)/40)), function(t) {
-                               paste0("I(trt*t==", t, ")")
-                           }), collapse = "+"), "+ trt + hgb + stage + age")
+                           if (survtmle.glm.misspecify) {
+                               glm.time <- paste0(paste0(sapply(1:floor(tau*((length(grid.survtmle)-1)/40)), function(t) {
+                                   paste0("I(t==", t, ")")
+                               }), collapse = "+"), "+",
+                               paste0(sapply(1:max(sim.follic[["dtime"]]), function(t) {
+                                   paste0("I(trt*t==", t, ")")
+                               }), collapse = "+"), "+ trt + hgb + stage + age")
+                           } else {
+                               glm.time <- paste0(paste0(sapply(1:floor(tau*((length(grid.survtmle)-1)/40)), function(t) {
+                                   paste0("I(t==", t, ")")
+                               }), collapse = "+"), "+",
+                               paste0(sapply(1:max(sim.follic[["dtime"]]), function(t) {
+                                   paste0("I(trt*t==", t, ")")
+                               }), collapse = "+"), "+ trt + hgb + stage + age + age:stage")
+                           }
 
                            #-- apply survtmle:
                            if (sl.survtmle) {
@@ -232,6 +242,7 @@ run.follic <- function(M = 1, no_cores = 1, print.m = TRUE, seed.init = 100, no.
                 file=paste0("./simulation/output/",
                             "outlist-follic-contmle",
                             ifelse(fit.survtmle, "-survtmle", ""),
+                            ifelse(fit.survtmle & survtmle.glm.misspecify & !sl.survtmle, "-misspecifyGLM", ""),
                             ifelse(fit.survtmle, paste0("-gridlength", length(grid.survtmle)), ""),
                             ifelse(fit.survtmle & sl.survtmle, "-sl", ""),                            
                             paste0("-", parameter),

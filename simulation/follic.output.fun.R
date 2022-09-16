@@ -3,9 +3,9 @@
 ## Author: Helene
 ## Created: Jul 14 2022 (12:51) 
 ## Version: 
-## Last-Updated: Aug 22 2022 (20:14) 
+## Last-Updated: Sep 16 2022 (08:04) 
 ##           By: Helene
-##     Update #: 163
+##     Update #: 165
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -260,6 +260,7 @@ follic.output.survtmle <- function(M = 500,
                                    randomized.treatment = FALSE,
                                    fit.survtmle = TRUE,
                                    grid.survtmle = (0:40),
+                                   survtmle.glm.misspecify = FALSE,
                                    sl.survtmle = FALSE,
                                    sim.sample = 1000,
                                    output.directory = "simulation"
@@ -267,6 +268,7 @@ follic.output.survtmle <- function(M = 500,
 
     print(paste0("./", output.directory, "/output/",
                  "outlist-follic-contmle-survtmle",
+                 ifelse(fit.survtmle & survtmle.glm.misspecify & !sl.survtmle, "-misspecifyGLM", ""),
                  ifelse(fit.survtmle, paste0("-gridlength", length(grid.survtmle)), ""),
                  ifelse(fit.survtmle & sl.survtmle, "-sl", ""),                            
                  paste0("-", parameter),
@@ -284,6 +286,7 @@ follic.output.survtmle <- function(M = 500,
 
     print(paste0("modified at: ", file.info(paste0("./", output.directory, "/output/",
                                                    "outlist-follic-contmle-survtmle",
+                                                   ifelse(fit.survtmle & survtmle.glm.misspecify & !sl.survtmle, "-misspecifyGLM", ""),
                                                    ifelse(fit.survtmle, paste0("-gridlength", length(grid.survtmle)), ""),
                                                    ifelse(fit.survtmle & sl.survtmle, "-sl", ""),                            
                                                    paste0("-", parameter),
@@ -301,6 +304,7 @@ follic.output.survtmle <- function(M = 500,
 
     out <- readRDS(file=paste0("./", output.directory, "/output/",
                                "outlist-follic-contmle-survtmle",
+                               ifelse(fit.survtmle & survtmle.glm.misspecify & !sl.survtmle, "-misspecifyGLM", ""),
                                ifelse(fit.survtmle, paste0("-gridlength", length(grid.survtmle)), ""),
                                ifelse(fit.survtmle & sl.survtmle, "-sl", ""),                            
                                paste0("-", parameter),
