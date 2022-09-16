@@ -455,7 +455,7 @@ grid.arrange(ggplot(contmle.results) + theme_bw() +
 
 *** More results for survtmle
 
-#+BEGIN_SRC R :results file graphics :file ./simulation/output/survtmle-results.png :exports none :session *R* :cache yes :height 1100 :width 2500
+#+BEGIN_SRC R :results file graphics :file ./simulation/output/survtmle-results.png :exports none :session *R* :cache yes :height 1500 :width 1500
 sim.sample <- 1000   
 survtmle.results <- do.call("rbind", lapply(c(nrow(follic), 1000, 2000), function(sim.sample) {
   out.outer <- do.call("rbind", lapply(list("Randomized treatment + independent censoring", "Informative censoring"), function(outer.which) {
@@ -467,7 +467,7 @@ survtmle.results <- do.call("rbind", lapply(c(nrow(follic), 1000, 2000), functio
                                           informative.censoring = outer.which != "Randomized treatment + independent censoring",
                                           observed.covars = TRUE,
                                           sl.survtmle = inner.sl == "sl",
-                                          survtmle.glm.misspecify = inner.sl == "glm-misspecified",
+                                          survtmle.glm.misspecify = inner.sl == "glm-misspecified", 
                                           grid.survtmle = inner.grid, 
                                           sim.sample = sim.sample))) 
       })))
@@ -509,10 +509,10 @@ grid.arrange(ggplot(survtmle.results) + theme_bw() +
              geom_hline(yintercept = 1, linetype = "dashed", col = "red", alpha = 0.5) +
              ylab("SD/SE") + xlab("grid length used") +
              theme(strip.text = element_text(size = 9.5),  
-                   strip.background = element_blank()))     
+                   strip.background = element_blank()), ncol=1)     
 #+END_SRC
 
-#+RESULTS[(2022-09-16 11:45:54) 06af581775faabdff0ae05e7c5fd7d9dc4a22b51]:
+#+RESULTS[(2022-09-16 11:46:56) 917106491e61504d1501686805cc0ca3aa4bc1e4]:
 [[file:./simulation/output/survtmle-results.png]]
 
 [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#web-appendix][Back to top]]
