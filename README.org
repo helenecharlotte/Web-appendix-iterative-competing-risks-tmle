@@ -455,7 +455,7 @@ grid.arrange(ggplot(contmle.results) + theme_bw() +
 
 *** More results for survtmle
 
-#+BEGIN_SRC R :results file graphics :file ./simulation/output/survtmle-results.png :exports none :session *R* :cache yes :height 1100 :width 1100
+#+BEGIN_SRC R :results file graphics :file ./simulation/output/survtmle-results.png :exports none :session *R* :cache yes :height 1100 :width 2500
 sim.sample <- 1000   
 survtmle.results <- do.call("rbind", lapply(c(nrow(follic), 1000, 2000), function(sim.sample) {
   out.outer <- do.call("rbind", lapply(list("Randomized treatment + independent censoring", "Informative censoring"), function(outer.which) {
@@ -469,7 +469,7 @@ survtmle.results <- do.call("rbind", lapply(c(nrow(follic), 1000, 2000), functio
                                           sl.survtmle = inner.sl == "sl",
                                           survtmle.glm.misspecify = inner.sl == "glm-misspecified",
                                           grid.survtmle = inner.grid, 
-                                          sim.sample = sim.sample)))
+                                          sim.sample = sim.sample))) 
       })))
       out.inner[, initial := c("GLM", "GLM-misspecified", "SL")][, grid.length.used := length(inner.grid)][, setting := outer.which]
       return(out.inner[substr(bias.survtmle, 1, 5) != "Error"])
@@ -512,7 +512,7 @@ grid.arrange(ggplot(survtmle.results) + theme_bw() +
                    strip.background = element_blank()))     
 #+END_SRC
 
-#+RESULTS[(2022-09-16 11:45:24) 3f87c20b214adf116f65c62b9e4073d8ab0e1120]:
+#+RESULTS[(2022-09-16 11:45:54) 06af581775faabdff0ae05e7c5fd7d9dc4a22b51]:
 [[file:./simulation/output/survtmle-results.png]]
 
 [[https://github.com/helenecharlotte/Web-appendix-iterative-competing-risks-tmle#web-appendix][Back to top]]
